@@ -39,6 +39,7 @@ function initTikTokSDK() {
       }
     } catch (e) {
       console.error("%c TikTok SDK Init Hatası:", "color: white; background: red; font-weight: bold;", e);
+      alert("SDK Başlatılamadı: " + (e.message || e));
     }
 
     // AppID (Client Key) Entegrasyonu
@@ -333,6 +334,7 @@ const initInterval = setInterval(() => {
               },
               fail(err) {
                 console.error('%c TikTok Share API Fail Hatası:', 'color: white; background: red; font-weight: bold;', err);
+                alert("TikTok Hatası: " + (err.message || JSON.stringify(err)));
               }
             });
           } else {
@@ -340,6 +342,7 @@ const initInterval = setInterval(() => {
           }
         } catch (error) {
           console.error("%c TIKTOK SHARE HATASI:", "color: white; background: red; font-size: 14px; font-weight: bold;", error.message || error);
+          alert("TikTok Hatası: " + (error.message || error));
         }
       });
     }
