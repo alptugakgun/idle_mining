@@ -97,20 +97,20 @@ export default class GameUI {
             const balance = GameMath.formatMoney(this.scene.gameState.balance);
             const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
             
+            if (typeof TTMinis !== 'undefined') {
+                window.logToScreen("TT İçindekiler: " + Object.keys(TTMinis).join(', '));
+            }
+
             try {
-                if (typeof TTMinis !== 'undefined' && TTMinis.shareAppMessage) {
-                    TTMinis.shareAppMessage({
-                        title: 'Idle Mining Empire',
-                        desc: msg,
-                        imageUrl: '',
-                        success() { window.logToScreen("TikTok Share Başarılı!"); },
-                        fail(err) { window.logToScreen("TikTok Share API Fail Hatası: " + JSON.stringify(err)); }
-                    });
-                } else {
-                    window.logToScreen(`[Mock Share] Message: "${msg}"`);
-                }
+                TTMinis.shareAppMessage({
+                    title: 'Idle Mining Empire',
+                    desc: msg,
+                    imageUrl: '',
+                    success() { window.logToScreen("TikTok Share Başarılı!"); },
+                    fail(err) { window.logToScreen("TikTok Share API Fail Hatası: " + JSON.stringify(err)); }
+                });
             } catch (error) {
-                window.logToScreen("TikTok Share Hatası: " + JSON.stringify(error));
+                window.logToScreen("TikTok Share Hatası: " + (error.message || error.toString()));
             }
         };
     }
