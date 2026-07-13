@@ -123,7 +123,7 @@ export default class GameUI {
         };
     }
 
-    const dummyIds = ['btn-engineer', 'btn-alert', 'btn-briefcase', 'btn-wheel', 'btn-hexagon', 'btn-shop', 'btn-lab', 'btn-trophy', 'btn-calendar'];
+    const dummyIds = ['btn-engineer', 'btn-extras', 'btn-shop', 'btn-lab', 'btn-trophy', 'btn-calendar'];
     dummyIds.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) btn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.showModal('Coming Soon!', 'This feature is currently under development.'); };
