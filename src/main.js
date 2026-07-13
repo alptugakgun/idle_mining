@@ -31,7 +31,11 @@ window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.
 
 function initTikTokSDK() {
     if (typeof tt !== 'undefined') {
+        // AppID (Client Key) Entegrasyonu
+        const TIKTOK_APP_ID = 'awhls5sr2gscusax';
+        
         tt.login({
+            appId: TIKTOK_APP_ID,
             force: false,
             success(res) {
                 console.log('Login successful');
