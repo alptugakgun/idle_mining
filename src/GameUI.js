@@ -92,14 +92,14 @@ export default class GameUI {
     if (shareBtn) {
         shareBtn.onclick = (e) => {
             e.stopPropagation(); e.preventDefault();
-            window.logToScreen("Share tetiklendi. tt objesi: " + typeof tt);
+            window.logToScreen("Share tetiklendi. TTMinis objesi: " + typeof TTMinis);
             const level = this.scene.shafts.length;
             const balance = GameMath.formatMoney(this.scene.gameState.balance);
             const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
             
             try {
-                if (typeof tt !== 'undefined' && tt.shareAppMessage) {
-                    tt.shareAppMessage({
+                if (typeof TTMinis !== 'undefined' && TTMinis.shareAppMessage) {
+                    TTMinis.shareAppMessage({
                         title: 'Idle Mining Empire',
                         desc: msg,
                         imageUrl: '',

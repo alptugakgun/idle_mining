@@ -36,32 +36,43 @@ let lastTime = Date.now();
 window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
 
 function initTikTokSDK() {
-  window.logToScreen("initTikTokSDK çağrıldı. tt objesi: " + typeof tt);
-  if (typeof tt !== 'undefined') {
+  window.logToScreen("initTikTokSDK çağrıldı. TTMinis objesi: " + typeof TTMinis);
+  if (typeof TTMinis !== 'undefined') {
     try {
-        tt.login({
-          force: false,
-          success(res) {
-            window.logToScreen('Login successful');
-            tt.getUserInfo({
-              success(info) {
-                window.playerProfile.name = info.userInfo.nickName || 'Player';
-                window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
-                updateProfileUI();
-              },
-              fail(err) { window.logToScreen("GetUserInfo hatası: " + JSON.stringify(err)); }
-            });
-          },
-          fail(err) {
-            window.logToScreen("tt.login başarısız: " + JSON.stringify(err));
-            updateProfileUI();
-          }
+        TTMinis.init({
+            clientKey: 'sbaw5t3lvvcxfi4puy'
         });
+        window.logToScreen("TTMinis SDK Başarıyla Başlatıldı!");
+        
+        if (TTMinis.login) {
+            TTMinis.login({
+              force: false,
+              success(res) {
+                window.logToScreen('Login successful');
+                if (TTMinis.getUserInfo) {
+                    TTMinis.getUserInfo({
+                      success(info) {
+                        window.playerProfile.name = info.userInfo.nickName || 'Player';
+                        window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
+                        updateProfileUI();
+                      },
+                      fail(err) { window.logToScreen("GetUserInfo hatası: " + JSON.stringify(err)); }
+                    });
+                }
+              },
+              fail(err) {
+                window.logToScreen("TTMinis.login başarısız: " + JSON.stringify(err));
+                updateProfileUI();
+              }
+            });
+        } else {
+            updateProfileUI();
+        }
     } catch (err) {
-        window.logToScreen("tt.login catch hatası: " + JSON.stringify(err));
+        window.logToScreen("TTMinis Init/Login Hatası: " + (err.message || JSON.stringify(err)));
     }
   } else {
-    window.logToScreen("tt objesi bulunamadı! (Mock TikTok Login)");
+    window.logToScreen("KRİTİK HATA: TTMinis objesi yüklenemedi!");
     updateProfileUI();
   }
 }
