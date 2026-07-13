@@ -92,7 +92,7 @@ export default class GameUI {
     if (shareBtn) {
         shareBtn.onclick = (e) => {
             e.stopPropagation(); e.preventDefault();
-            alert("Share tetiklendi. tt objesi: " + typeof tt);
+            window.logToScreen("Share tetiklendi. tt objesi: " + typeof tt);
             const level = this.scene.shafts.length;
             const balance = GameMath.formatMoney(this.scene.gameState.balance);
             const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
@@ -103,15 +103,14 @@ export default class GameUI {
                         title: 'Idle Mining Empire',
                         desc: msg,
                         imageUrl: '',
-                        success() { alert("TikTok Share Başarılı!"); console.log('Share successful'); },
-                        fail(err) { alert("TikTok Share API Fail Hatası: " + JSON.stringify(err)); console.log('Share failed', err); }
+                        success() { window.logToScreen("TikTok Share Başarılı!"); },
+                        fail(err) { window.logToScreen("TikTok Share API Fail Hatası: " + JSON.stringify(err)); }
                     });
                 } else {
-                    console.log(`[TikTok Share Triggered] Message: "${msg}"`);
-                    alert(`Mock Share!\n\n${msg}`);
+                    window.logToScreen(`[Mock Share] Message: "${msg}"`);
                 }
             } catch (error) {
-                alert("TikTok Share Hatası: " + JSON.stringify(error));
+                window.logToScreen("TikTok Share Hatası: " + JSON.stringify(error));
             }
         };
     }

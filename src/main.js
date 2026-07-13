@@ -4,6 +4,12 @@ import MenuScene from './scenes/MenuScene.js';
 import GameScene from './scenes/GameScene.js';
 import { GameMath, AdsManager } from './gameLogic.js';
 
+window.logToScreen = function(msg) {
+  const dbg = document.getElementById('debug-console');
+  if(dbg) dbg.innerHTML += '<br/>> ' + msg;
+  console.log(msg);
+};
+
 window.globalBoostEndTime = 0;
 
 const config = {
@@ -30,50 +36,46 @@ let lastTime = Date.now();
 window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
 
 function initTikTokSDK() {
-  alert("initTikTokSDK çağrıldı. tt objesi: " + typeof tt);
+  window.logToScreen("initTikTokSDK çağrıldı. tt objesi: " + typeof tt);
   if (typeof tt !== 'undefined') {
+    const CLIENT_KEY = "sbaw5t3lvvcxfi4puy";
     try {
       if (tt.init) {
         tt.init({
-          clientKey: "sbaw5t3lvvcxfi4puy",
-          success(res) { alert("tt.init başarılı!"); },
-          fail(err) { alert("tt.init başarısız: " + JSON.stringify(err)); }
+          clientKey: CLIENT_KEY,
+          success(res) { window.logToScreen("tt.init başarılı!"); },
+          fail(err) { window.logToScreen("tt.init başarısız: " + JSON.stringify(err)); }
         });
       }
     } catch (e) {
-      console.error("%c TikTok SDK Init Hatası:", "color: white; background: red; font-weight: bold;", e);
-      alert("SDK Başlatılamadı (catch): " + (e.message || JSON.stringify(e)));
+      window.logToScreen("SDK Başlatılamadı (catch): " + (e.message || JSON.stringify(e)));
     }
-
-    // AppID (Client Key) Entegrasyonu
-    const TIKTOK_APP_ID = 'awhls5sr2gscusax';
 
     try {
         tt.login({
-          appId: TIKTOK_APP_ID,
+          appId: CLIENT_KEY,
           force: false,
           success(res) {
-            console.log('Login successful');
+            window.logToScreen('Login successful');
             tt.getUserInfo({
               success(info) {
                 window.playerProfile.name = info.userInfo.nickName || 'Player';
                 window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
                 updateProfileUI();
               },
-              fail(err) { console.log('GetUserInfo failed', err); alert("GetUserInfo hatası: " + JSON.stringify(err)); }
+              fail(err) { window.logToScreen("GetUserInfo hatası: " + JSON.stringify(err)); }
             });
           },
           fail(err) {
-            console.log('Login failed', err);
-            alert("tt.login başarısız: " + JSON.stringify(err));
+            window.logToScreen("tt.login başarısız: " + JSON.stringify(err));
             updateProfileUI();
           }
         });
     } catch (err) {
-        alert("tt.login catch hatası: " + JSON.stringify(err));
+        window.logToScreen("tt.login catch hatası: " + JSON.stringify(err));
     }
   } else {
-    console.log('Localhost: Mock TikTok Login successful.');
+    window.logToScreen("tt objesi bulunamadı! (Mock TikTok Login)");
     updateProfileUI();
   }
 }
