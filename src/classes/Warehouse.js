@@ -8,7 +8,7 @@ export default class Warehouse extends Phaser.GameObjects.Container {
     this.startX = x;
     this.elevatorX = 170; // Stop right next to elevator rig
     this.level = 1;
-    this.capacity = 20;
+    this.capacity = this.scene.gameState ? this.scene.gameState.warehouseCapBase : 300;
     this.state = 'IDLE';
     this.hasManager = false;
     
@@ -61,10 +61,10 @@ export default class Warehouse extends Phaser.GameObjects.Container {
     this.sprite.scaleX = -1; // Face left
     
     // Walking animation (bobbing)
-    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 150, yoyo: true, repeat: -1 });
+    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 100, yoyo: true, repeat: -1 });
 
     this.scene.tweens.add({
-        targets: this, x: this.elevatorX, duration: Math.abs(this.x - this.elevatorX) * 8,
+        targets: this, x: this.elevatorX, duration: Math.abs(this.x - this.elevatorX) * 5,
         onComplete: () => {
             this.walkTween.stop();
             this.sprite.y = -10;
@@ -74,9 +74,9 @@ export default class Warehouse extends Phaser.GameObjects.Container {
                     this.scene.gameState.surfaceBin -= take;
                     this.cargo.setVisible(true);
                     this.sprite.scaleX = 1; // Face right
-                    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 150, yoyo: true, repeat: -1 });
+                    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 100, yoyo: true, repeat: -1 });
                     this.scene.tweens.add({
-                        targets: this, x: this.startX, duration: Math.abs(this.x - this.startX) * 8,
+                        targets: this, x: this.startX, duration: Math.abs(this.x - this.startX) * 5,
                         onComplete: () => {
                             this.walkTween.stop();
                             this.sprite.y = -10;
@@ -109,9 +109,9 @@ export default class Warehouse extends Phaser.GameObjects.Container {
                     });
                 } else {
                     this.sprite.scaleX = 1;
-                    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 150, yoyo: true, repeat: -1 });
+                    this.walkTween = this.scene.tweens.add({ targets: this.sprite, y: -15, duration: 100, yoyo: true, repeat: -1 });
                     this.scene.tweens.add({
-                        targets: this, x: this.startX, duration: Math.abs(this.x - this.startX) * 8,
+                        targets: this, x: this.startX, duration: Math.abs(this.x - this.startX) * 5,
                         onComplete: () => {
                             this.walkTween.stop();
                             this.sprite.y = -10;

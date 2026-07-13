@@ -18,7 +18,7 @@ export default class GameScene extends Phaser.Scene {
     // Always start with default constants, then merge any saved dynamic values on top
     const defaults = {
       balance: 77,
-      mineProdBase: 10, elevatorCapBase: 100, warehouseCapBase: 100,
+      mineProdBase: 10, elevatorCapBase: 100, warehouseCapBase: 300,
       mineCostBase: 150, elevatorCostBase: 100, warehouseCostBase: 100,
       costMul: 1.15,
       surfaceBin: 0
