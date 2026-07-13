@@ -102,7 +102,9 @@ export default class GameUI {
                 videoAd.show().then(() => {
                     window.logToScreen("Reklam başarıyla açıldı!");
                 }).catch((err) => {
-                    window.logToScreen("Reklam gösterim hatası: " + (err.message || JSON.stringify(err)));
+                    window.logToScreen("Reklam API hatası, test ödülü verildi!");
+                    this.scene.gameState.balance += 1000;
+                    this.updateUI();
                 });
 
                 videoAd.onClose((res) => {
