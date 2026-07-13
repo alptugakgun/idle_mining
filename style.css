@@ -5,7 +5,7 @@ body, html {
   padding: 0;
   width: 100%;
   height: 100%;
-  background-color: #0b0f19;
+  background-color: #5D9FE6; /* Earthy sky blue */
   overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: white;
@@ -20,7 +20,7 @@ body, html {
   width: 100%;
   max-width: 540px;
   height: 100dvh;
-  background-color: #000;
+  background-color: #3b2818; /* Earthy dark brown */
   box-shadow: 0 0 50px rgba(0,0,0,0.8);
   overflow: hidden;
 }
@@ -34,9 +34,71 @@ body, html {
   z-index: 1;
 }
 
+/* Premium Button Transitions */
 .btn-press {
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.btn-press:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 .btn-press:active {
   transform: translateY(4px);
+  filter: brightness(0.95);
+}
+
+/* Custom Gradients and Box Shadows for UI elements */
+.panel-wood {
+  background: linear-gradient(to bottom, #5c3a21, #382110);
+  border: 2px solid #8b5a33;
+  box-shadow: inset 0 2px 5px rgba(255,255,255,0.1), 0 10px 25px rgba(0,0,0,0.6);
+}
+
+.panel-wood-header {
+  background: linear-gradient(to bottom, #8b5a33, #5c3a21);
+  border-bottom: 2px solid #382110;
+}
+
+.btn-gold {
+  background: linear-gradient(to bottom, #ffd700, #daa520);
+  border: 2px solid #fff3a1;
+  border-bottom: 5px solid #b8860b;
+  color: #3e2723;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.btn-blue {
+  background: linear-gradient(to bottom, #4da8da, #207ce5);
+  border: 2px solid #89cff0;
+  border-bottom: 5px solid #1a5299;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.btn-green {
+  background: linear-gradient(to bottom, #66bb6a, #43a047);
+  border: 2px solid #a5d6a7;
+  border-bottom: 5px solid #2e7d32;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.btn-red {
+  background: linear-gradient(to bottom, #ef5350, #e53935);
+  border: 2px solid #ef9a9a;
+  border-bottom: 5px solid #c62828;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.text-gold {
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/* Ensure modails block all pointer events beneath them */
+.modal-overlay {
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
 }

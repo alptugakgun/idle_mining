@@ -24,7 +24,7 @@ export default class Shaft {
     const lvlBtn = document.createElement('button');
     lvlBtn.className = 'btn-press bg-[#3b82f6] border-b-4 border-[#1e40af] text-white rounded-xl w-16 h-12 flex flex-col items-center justify-center shadow-lg';
     lvlBtn.innerHTML = `<span class="text-yellow-400 font-bold text-lg leading-none">↑</span><span class="text-[10px] font-bold">Lvl ${this.level}</span>`;
-    lvlBtn.onclick = () => this.scene.events.emit('open_upgrade', { type: 'shaft', id: this.id });
+    lvlBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.scene.events.emit('open_upgrade', { type: 'shaft', id: this.id }); };
     this.lvlBtnDOM = this.scene.add.dom(this.scene.cw - 50, y, lvlBtn);
 
     // Miner object

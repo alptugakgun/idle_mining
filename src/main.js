@@ -79,8 +79,7 @@ function updateProfileUI() {
 
 initTikTokSDK();
 
-// Sync UI Layer size to match dynamically scaled canvas
-setInterval(() => {
+function resizeUI() {
   const canvas = document.querySelector('canvas');
   const uiLayer = document.getElementById('ui-layer');
   if (canvas && uiLayer) {
@@ -89,7 +88,10 @@ setInterval(() => {
     uiLayer.style.marginLeft = canvas.style.marginLeft || '0px';
     uiLayer.style.marginTop = canvas.style.marginTop || '0px';
   }
-}, 100);
+}
+
+window.addEventListener('resize', resizeUI);
+setInterval(resizeUI, 500); // reduced frequency fallback
 
 let savedState = localStorage.getItem('idleMiningSave');
 if (savedState) {
@@ -112,15 +114,8 @@ setInterval(() => {
   }
 }, 5000);
 
-const balanceDisplay = document.getElementById('balance-display');
-const idleCashDisplay = document.getElementById('idle-cash-display');
-const upgradePanel = document.getElementById('upgrade-panel');
-const managerPanel = document.getElementById('manager-panel');
+// Removed duplicated UI logic. GameUI.js handles the UI updates now.
 const offlineModal = document.getElementById('offline-modal');
-
-let currentUpgradeTarget = null;
-let currentMultiplier = 1;
-let currentManagerTarget = null;
 
 function formatMoney(num) {
   if (num < 1000) return Math.floor(num).toString();
@@ -139,122 +134,15 @@ function calcTotalProd() {
   return total / 3;
 }
 
-window.updateHTMLUI = () => {
-  if (!window.gameScene) return;
-  balanceDisplay.innerText = formatMoney(window.gameScene.gameState.balance);
-  idleCashDisplay.innerText = formatMoney(calcTotalProd()) + '/s';
-};
-
-document.querySelectorAll('.upgrade-mul-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.upgrade-mul-btn').forEach(b => {
-      b.classList.remove('bg-blue-600', 'text-white');
-      b.classList.add('bg-slate-700', 'text-slate-300');
-    });
-    e.target.classList.remove('bg-slate-700', 'text-slate-300');
-    e.target.classList.add('bg-blue-600', 'text-white');
-    const mul = e.target.getAttribute('data-mul');
-    currentMultiplier = mul === 'MAX' ? 100 : parseInt(mul);
-    refreshUpgradeUI();
-  });
-});
-
-document.getElementById('upgrade-close-btn').onclick = () => upgradePanel.classList.add('translate-y-full');
-document.getElementById('manager-close-btn').onclick = () => { managerPanel.classList.add('hidden'); managerPanel.classList.remove('flex'); };
-
-function refreshUpgradeUI() {
-  if (!currentUpgradeTarget || !window.gameScene) return;
-  const state = window.gameScene.gameState;
-  let lvl = 1, baseCost = 0, baseStat = 0;
-
-  if (currentUpgradeTarget.type === 'shaft') {
-    const shaft = window.gameScene.shafts.find(s => s.id === currentUpgradeTarget.id);
-    lvl = shaft.level;
-    baseCost = state.mineCostBase * Math.pow(1.5, shaft.id - 1);
-    baseStat = state.mineProdBase * shaft.id;
-    document.getElementById('upgrade-title').innerText = `Upgrade Shaft ${shaft.id}`;
-  } else {
-    const obj = window.gameScene[currentUpgradeTarget.type];
-    lvl = obj.level || 1;
-    baseCost = state[`${currentUpgradeTarget.type}CostBase`];
-    baseStat = state[`${currentUpgradeTarget.type}CapBase`];
-    document.getElementById('upgrade-title').innerText = `Upgrade ${currentUpgradeTarget.type}`;
-  }
-
-  const cost = GameMath.calculateUpgradeCost(baseCost, state.costMul, lvl, currentMultiplier);
-  document.getElementById('upgrade-cost-text').innerText = formatMoney(cost);
-  document.getElementById('upgrade-level-text').innerText = `Lvl ${lvl} ➔ ${lvl + currentMultiplier}`;
-  document.getElementById('upgrade-current-stat').innerText = formatMoney(GameMath.calculateProduction(baseStat, lvl));
-  document.getElementById('upgrade-next-stat').innerText = formatMoney(GameMath.calculateProduction(baseStat, lvl + currentMultiplier));
-
-  const btn = document.getElementById('upgrade-action-btn');
-  if (state.balance >= cost) {
-    btn.classList.replace('from-slate-500', 'from-green-500');
-    btn.classList.replace('to-slate-600', 'to-green-600');
-  } else {
-    btn.classList.replace('from-green-500', 'from-slate-500');
-    btn.classList.replace('to-green-600', 'to-slate-600');
-  }
-}
-
-document.getElementById('upgrade-action-btn').onclick = () => {
-  const state = window.gameScene.gameState;
-  let lvl = 1, baseCost = 0;
-  let obj = currentUpgradeTarget.type === 'shaft'
-    ? window.gameScene.shafts.find(s => s.id === currentUpgradeTarget.id)
-    : window.gameScene[currentUpgradeTarget.type];
-
-  if (currentUpgradeTarget.type === 'shaft') baseCost = state.mineCostBase * Math.pow(1.5, obj.id - 1);
-  else baseCost = state[`${currentUpgradeTarget.type}CostBase`];
-
-  const cost = GameMath.calculateUpgradeCost(baseCost, state.costMul, obj.level || 1, currentMultiplier);
-
-  if (state.balance >= cost) {
-    state.balance -= cost;
-    obj.level = (obj.level || 1) + currentMultiplier;
-    if (obj.updateUI) obj.updateUI();
-    window.updateHTMLUI();
-    refreshUpgradeUI();
-  }
-};
-
-document.querySelectorAll('.manager-buy-btn').forEach(btn => {
-  btn.onclick = (e) => {
-    const cost = parseInt(e.target.getAttribute('data-cost'));
-    const state = window.gameScene.gameState;
-    if (state.balance >= cost && currentManagerTarget) {
-      state.balance -= cost;
-      let obj = currentManagerTarget.type === 'shaft'
-        ? window.gameScene.shafts.find(s => s.id === currentManagerTarget.id)
-        : window.gameScene[currentManagerTarget.type];
-      obj.assignManager();
-      window.updateHTMLUI();
-      managerPanel.classList.add('hidden'); managerPanel.classList.remove('flex');
-    }
-  };
-});
-
 const initInterval = setInterval(() => {
   if (window.gameScene && window.gameScene.gameState) {
     clearInterval(initInterval);
-
-    window.gameScene.events.on('open_upgrade', (target) => {
-      currentUpgradeTarget = target;
-      upgradePanel.classList.remove('translate-y-full');
-      refreshUpgradeUI();
-    });
-
-    window.gameScene.events.on('buy_manager', (target) => {
-      currentManagerTarget = target;
-      managerPanel.classList.remove('hidden'); managerPanel.classList.add('flex');
-    });
 
     window.gameScene.events.on('watch_boost_ad', () => {
       AdsManager.showRewardedAd(() => {
         window.globalBoostEndTime = Date.now() + (60 * 60 * 1000); // 1 Hour
         document.getElementById('boost-modal').classList.add('hidden');
         document.getElementById('boost-modal').classList.remove('flex');
-        window.updateHTMLUI();
       }, () => {
         alert('Boost Ad failed or closed.');
       });
@@ -292,18 +180,18 @@ const initInterval = setInterval(() => {
           document.getElementById('offline-earned-text').innerText = formatMoney(pendingOfflineCash);
           offlineModal.classList.remove('hidden'); offlineModal.classList.add('flex');
 
-          document.getElementById('offline-collect-btn').onclick = () => {
+          document.getElementById('offline-collect-btn').onclick = (e) => {
+            e.stopPropagation(); e.preventDefault();
             state.balance += pendingOfflineCash;
-            window.updateHTMLUI();
             offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
           };
 
           const adBtn = document.getElementById('offline-collect-ad-btn');
           if (adBtn) {
-            adBtn.onclick = () => {
+            adBtn.onclick = (e) => {
+              e.stopPropagation(); e.preventDefault();
               AdsManager.showRewardedAd(() => {
                 state.balance += (pendingOfflineCash * 2);
-                window.updateHTMLUI();
                 offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
               });
             };
@@ -312,41 +200,14 @@ const initInterval = setInterval(() => {
       } catch (e) { }
     }
 
-    document.getElementById('offline-close-btn').onclick = () => {
+    document.getElementById('offline-close-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation(); e.preventDefault();
       offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
-    };
+    });
 
-    window.updateHTMLUI();
+    // Removed duplicate btnShare logic (already in GameUI.js)
 
-    const btnShare = document.getElementById('btn-share');
-    if (btnShare) {
-      btnShare.addEventListener('click', () => {
-        try {
-          if (typeof tt === 'undefined') {
-            throw new Error("tt objesi bulunamadı! SDK yüklenmemiş olabilir veya TikTok Webview dışında açıldı.");
-          }
-
-          if (tt.shareAppMessage) {
-            tt.shareAppMessage({
-              title: 'Idle Mining Empire - Come play!',
-              success(res) {
-                console.log('Share successful', res);
-              },
-              fail(err) {
-                console.error('%c TikTok Share API Fail Hatası:', 'color: white; background: red; font-weight: bold;', err);
-                alert("TikTok Hatası: " + (err.message || JSON.stringify(err)));
-              }
-            });
-          } else {
-            throw new Error("Mevcut SDK'da tt.shareAppMessage fonksiyonu bulunamadı.");
-          }
-        } catch (error) {
-          console.error("%c TIKTOK SHARE HATASI:", "color: white; background: red; font-size: 14px; font-weight: bold;", error.message || error);
-          alert("TikTok Hatası: " + (error.message || error));
-        }
-      });
-    }
-
+    // Unified Save Loop (replaces duplicate save loop and handles boost timer UI)
     setInterval(() => {
       const state = window.gameScene.gameState;
       const saveObj = {
@@ -358,7 +219,7 @@ const initInterval = setInterval(() => {
         lastLogout: Date.now(),
         globalBoostEndTime: window.globalBoostEndTime
       };
-      localStorage.setItem('idle_mining_save', JSON.stringify(saveObj));
+      localStorage.setItem('idleMiningSave', JSON.stringify(saveObj)); // use unified key
 
       // Update Boost UI Timer
       const boostDisplay = document.getElementById('boost-timer-display');

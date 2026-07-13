@@ -66,15 +66,15 @@ export default class GameScene extends Phaser.Scene {
 
     // Elevator & Warehouse Level Up Buttons
     const eleLvlBtn = document.createElement('button');
-    eleLvlBtn.className = 'btn-press bg-[#3b82f6] border-b-4 border-[#1e40af] text-white rounded-xl w-16 h-12 flex flex-col items-center justify-center shadow-lg';
+    eleLvlBtn.className = 'btn-press btn-blue text-white rounded-xl w-16 h-12 flex flex-col items-center justify-center shadow-lg';
     eleLvlBtn.innerHTML = `<span class="text-yellow-400 font-bold text-lg leading-none">↑</span><span class="text-[10px] font-bold">Lvl ${this.elevator.level || 1}</span>`;
-    eleLvlBtn.onclick = () => this.events.emit('open_upgrade', { type: 'elevator' });
+    eleLvlBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.events.emit('open_upgrade', { type: 'elevator' }); };
     this.add.dom(120 + 70, this.surfaceY - 40, eleLvlBtn);
 
     const wareLvlBtn = document.createElement('button');
-    wareLvlBtn.className = 'btn-press bg-[#3b82f6] border-b-4 border-[#1e40af] text-white rounded-xl w-16 h-12 flex flex-col items-center justify-center shadow-lg';
+    wareLvlBtn.className = 'btn-press btn-blue text-white rounded-xl w-16 h-12 flex flex-col items-center justify-center shadow-lg';
     wareLvlBtn.innerHTML = `<span class="text-yellow-400 font-bold text-lg leading-none">↑</span><span class="text-[10px] font-bold">Lvl ${this.warehouse.level || 1}</span>`;
-    wareLvlBtn.onclick = () => this.events.emit('open_upgrade', { type: 'warehouse' });
+    wareLvlBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.events.emit('open_upgrade', { type: 'warehouse' }); };
     this.add.dom(this.warehouse_building.x + 40, this.surfaceY - 40, wareLvlBtn);
     
     // Setup global access for UI refresh
@@ -86,9 +86,9 @@ export default class GameScene extends Phaser.Scene {
 
   addMGRButton(x, y, callback) {
     const el = document.createElement('button');
-    el.className = 'btn-press w-10 h-10 bg-[#3b82f6] rounded-full border-2 border-[#1e3a8a] text-white font-black text-[10px] shadow-lg flex items-center justify-center';
+    el.className = 'btn-press w-10 h-10 btn-blue rounded-full text-white font-black text-[10px] shadow-lg flex items-center justify-center';
     el.innerText = 'MGR';
-    el.onclick = callback;
+    el.onclick = (e) => { e.stopPropagation(); e.preventDefault(); callback(e); };
     return this.add.dom(x, y, el);
   }
 
@@ -114,12 +114,13 @@ export default class GameScene extends Phaser.Scene {
     progressText.innerText = '0%';
     
     const btn = document.createElement('button');
-    btn.className = 'btn-press w-full py-3 bg-[#38bdf8] rounded-[20px] border-b-[6px] border-[#0284c7] text-white font-black text-xl shadow-xl flex items-center justify-center gap-2 mt-1';
+    btn.className = 'btn-press w-full py-3 btn-blue rounded-[20px] text-white font-black text-xl shadow-xl flex items-center justify-center gap-2 mt-1';
     btn.innerHTML = `<img src="/assets/sprites/sprite_1.png" class="w-6 h-6"/> ${digCostPerTap} Dig`;
     
     this.digProgress = 0;
     
-    btn.onclick = () => {
+    btn.onclick = (e) => {
+        e.stopPropagation(); e.preventDefault();
         if (this.gameState.balance >= digCostPerTap) {
             this.gameState.balance -= digCostPerTap;
             this.digProgress += (100 / tapsNeeded);

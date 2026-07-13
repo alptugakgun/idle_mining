@@ -34,12 +34,13 @@ export default class GameUI {
     this.scene.events.on('open_upgrade', (data) => this.openUpgradePanel(data));
     this.scene.events.on('buy_manager', (data) => this.openManagerPanel(data));
     
-    this.upgradeCloseBtn.onclick = () => this.upgradePanel.classList.add('translate-y-full');
-    this.managerCloseBtn.onclick = () => this.managerPanel.classList.add('hidden');
+    this.upgradeCloseBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.upgradePanel.classList.add('translate-y-full'); };
+    this.managerCloseBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.managerPanel.classList.add('hidden'); };
     this.managerPanel.classList.add('hidden'); // Ensure hidden at start
     
     document.querySelectorAll('.upgrade-mul-btn').forEach(btn => {
       btn.onclick = (e) => {
+        e.stopPropagation(); e.preventDefault();
         document.querySelectorAll('.upgrade-mul-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-700'));
         e.target.classList.replace('bg-slate-700', 'bg-blue-600');
         this.upgradeMultiplier = e.target.dataset.mul === 'MAX' ? 'MAX' : parseInt(e.target.dataset.mul);
@@ -47,10 +48,11 @@ export default class GameUI {
       };
     });
 
-    this.upgradeActionBtn.onclick = () => this.performUpgrade();
+    this.upgradeActionBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.performUpgrade(); };
     
     this.managerBuyBtns.forEach(btn => {
         btn.onclick = (e) => {
+            e.stopPropagation(); e.preventDefault();
             const cost = parseInt(e.target.dataset.cost);
             if (this.gameState.balance >= cost && this.selectedEntity) {
                 this.gameState.balance -= cost;
@@ -62,30 +64,34 @@ export default class GameUI {
     });
 
     const settingsBtn = document.getElementById('settings-btn');
-    if (settingsBtn) settingsBtn.onclick = () => this.showModal('Settings', 'Audio and Language options coming soon.');
+    if (settingsBtn) settingsBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.showModal('Settings', 'Audio and Language options coming soon.'); };
     
     const boostBtn = document.getElementById('boost-btn');
-    if (boostBtn) boostBtn.onclick = () => {
+    if (boostBtn) boostBtn.onclick = (e) => {
+        e.stopPropagation(); e.preventDefault();
         document.getElementById('boost-modal').classList.remove('hidden');
         document.getElementById('boost-modal').classList.add('flex');
     };
     
     const boostCloseBtn = document.getElementById('boost-close-btn');
-    if (boostCloseBtn) boostCloseBtn.onclick = () => {
+    if (boostCloseBtn) boostCloseBtn.onclick = (e) => {
+        e.stopPropagation(); e.preventDefault();
         document.getElementById('boost-modal').classList.add('hidden');
         document.getElementById('boost-modal').classList.remove('flex');
     };
     
     const boostAdBtn = document.getElementById('boost-ad-btn');
     if (boostAdBtn) {
-        boostAdBtn.onclick = () => {
+        boostAdBtn.onclick = (e) => {
+            e.stopPropagation(); e.preventDefault();
             this.scene.events.emit('watch_boost_ad');
         };
     }
     
     const shareBtn = document.getElementById('btn-share');
     if (shareBtn) {
-        shareBtn.onclick = () => {
+        shareBtn.onclick = (e) => {
+            e.stopPropagation(); e.preventDefault();
             const level = this.scene.shafts.length;
             const balance = GameMath.formatMoney(this.scene.gameState.balance);
             const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
@@ -108,10 +114,11 @@ export default class GameUI {
     const dummyIds = ['btn-engineer', 'btn-alert', 'btn-briefcase', 'btn-wheel', 'btn-hexagon', 'btn-shop', 'btn-lab', 'btn-trophy', 'btn-calendar'];
     dummyIds.forEach(id => {
         const btn = document.getElementById(id);
-        if (btn) btn.onclick = () => this.showModal('Coming Soon!', 'This feature is currently under development.');
+        if (btn) btn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); this.showModal('Coming Soon!', 'This feature is currently under development.'); };
     });
 
-    document.getElementById('info-modal-close').onclick = () => {
+    document.getElementById('info-modal-close').onclick = (e) => {
+        e.stopPropagation(); e.preventDefault();
         document.getElementById('info-modal').classList.add('hidden');
         document.getElementById('info-modal').classList.remove('flex');
     };
