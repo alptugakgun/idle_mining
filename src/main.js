@@ -38,22 +38,8 @@ window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.
 function initTikTokSDK() {
   window.logToScreen("initTikTokSDK çağrıldı. tt objesi: " + typeof tt);
   if (typeof tt !== 'undefined') {
-    const CLIENT_KEY = "sbaw5t3lvvcxfi4puy";
-    try {
-      if (tt.init) {
-        tt.init({
-          clientKey: CLIENT_KEY,
-          success(res) { window.logToScreen("tt.init başarılı!"); },
-          fail(err) { window.logToScreen("tt.init başarısız: " + JSON.stringify(err)); }
-        });
-      }
-    } catch (e) {
-      window.logToScreen("SDK Başlatılamadı (catch): " + (e.message || JSON.stringify(e)));
-    }
-
     try {
         tt.login({
-          appId: CLIENT_KEY,
           force: false,
           success(res) {
             window.logToScreen('Login successful');
