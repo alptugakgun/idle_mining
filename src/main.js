@@ -30,75 +30,85 @@ let lastTime = Date.now();
 window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
 
 function initTikTokSDK() {
-    if (typeof tt !== 'undefined') {
-        // AppID (Client Key) Entegrasyonu
-        const TIKTOK_APP_ID = 'awhls5sr2gscusax';
-        
-        tt.login({
-            appId: TIKTOK_APP_ID,
-            force: false,
-            success(res) {
-                console.log('Login successful');
-                tt.getUserInfo({
-                    success(info) {
-                        window.playerProfile.name = info.userInfo.nickName || 'Player';
-                        window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
-                        updateProfileUI();
-                    },
-                    fail(err) { console.log('GetUserInfo failed', err); }
-                });
-            },
-            fail(err) {
-                console.log('Login failed', err);
-                updateProfileUI();
-            }
+  if (typeof tt !== 'undefined') {
+    try {
+      if (tt.init) {
+        tt.init({
+          clientKey: "sbaw5t3lvvcxfi4puy"
         });
-    } else {
-        console.log('Localhost: Mock TikTok Login successful.');
-        updateProfileUI();
+      }
+    } catch (e) {
+      console.error("%c TikTok SDK Init Hatası:", "color: white; background: red; font-weight: bold;", e);
     }
+
+    // AppID (Client Key) Entegrasyonu
+    const TIKTOK_APP_ID = 'awhls5sr2gscusax';
+
+    tt.login({
+      appId: TIKTOK_APP_ID,
+      force: false,
+      success(res) {
+        console.log('Login successful');
+        tt.getUserInfo({
+          success(info) {
+            window.playerProfile.name = info.userInfo.nickName || 'Player';
+            window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
+            updateProfileUI();
+          },
+          fail(err) { console.log('GetUserInfo failed', err); }
+        });
+      },
+      fail(err) {
+        console.log('Login failed', err);
+        updateProfileUI();
+      }
+    });
+  } else {
+    console.log('Localhost: Mock TikTok Login successful.');
+    updateProfileUI();
+  }
 }
 
 function updateProfileUI() {
-    const nameEl = document.getElementById('player-name');
-    const avatarEl = document.getElementById('player-avatar');
-    if (nameEl) nameEl.innerText = window.playerProfile.name;
-    if (avatarEl) avatarEl.src = window.playerProfile.avatar;
+  const nameEl = document.getElementById('player-name');
+  const avatarEl = document.getElementById('player-avatar');
+  if (nameEl) nameEl.innerText = window.playerProfile.name;
+  if (avatarEl) avatarEl.src = window.playerProfile.avatar;
 }
 
 initTikTokSDK();
 
 // Sync UI Layer size to match dynamically scaled canvas
 setInterval(() => {
-    const canvas = document.querySelector('canvas');
-    const uiLayer = document.getElementById('ui-layer');
-    if (canvas && uiLayer) {
-        uiLayer.style.width = canvas.style.width || '100%';
-        uiLayer.style.height = canvas.style.height || '100%';
-        uiLayer.style.marginLeft = canvas.style.marginLeft || '0px';
-        uiLayer.style.marginTop = canvas.style.marginTop || '0px';
-    }
+  const canvas = document.querySelector('canvas');
+  const uiLayer = document.getElementById('ui-layer');
+  if (canvas && uiLayer) {
+    uiLayer.style.width = canvas.style.width || '100%';
+    uiLayer.style.height = canvas.style.height || '100%';
+    uiLayer.style.marginLeft = canvas.style.marginLeft || '0px';
+    uiLayer.style.marginTop = canvas.style.marginTop || '0px';
+  }
 }, 100);
 
 let savedState = localStorage.getItem('idleMiningSave');
 if (savedState) {
-    try {
-        let state = JSON.parse(savedState);
-        window.initialGameState = state;
-    } catch(e) {}
+  try {
+    let state = JSON.parse(savedState);
+    window.initialGameState = state;
+  } catch (e) { }
 }
 
 const game = new Phaser.Game(config);
 
 // Save loop
 setInterval(() => {
-    if (window.gameScene && window.gameScene.gameState) {
-        let state = { ...window.gameScene.gameState, lastSaved: Date.now() };
-        // Estimate idle cash rate for offline calc
-        let idleRate = parseInt(document.getElementById('idle-cash-display').innerText) || 0;
-        state.idleCashRate = idleRate;
-        localStorage.setItem('idleMiningSave', JSON.stringify(state));
-    }
+  if (window.gameScene && window.gameScene.gameState) {
+    let state = { ...window.gameScene.gameState, lastSaved: Date.now() };
+    // Estimate idle cash rate for offline calc
+    let idleRate = parseInt(document.getElementById('idle-cash-display').innerText) || 0;
+    state.idleCashRate = idleRate;
+    localStorage.setItem('idleMiningSave', JSON.stringify(state));
+  }
 }, 5000);
 
 const balanceDisplay = document.getElementById('balance-display');
@@ -155,7 +165,7 @@ function refreshUpgradeUI() {
   if (!currentUpgradeTarget || !window.gameScene) return;
   const state = window.gameScene.gameState;
   let lvl = 1, baseCost = 0, baseStat = 0;
-  
+
   if (currentUpgradeTarget.type === 'shaft') {
     const shaft = window.gameScene.shafts.find(s => s.id === currentUpgradeTarget.id);
     lvl = shaft.level;
@@ -189,15 +199,15 @@ function refreshUpgradeUI() {
 document.getElementById('upgrade-action-btn').onclick = () => {
   const state = window.gameScene.gameState;
   let lvl = 1, baseCost = 0;
-  let obj = currentUpgradeTarget.type === 'shaft' 
-    ? window.gameScene.shafts.find(s => s.id === currentUpgradeTarget.id) 
+  let obj = currentUpgradeTarget.type === 'shaft'
+    ? window.gameScene.shafts.find(s => s.id === currentUpgradeTarget.id)
     : window.gameScene[currentUpgradeTarget.type];
-    
+
   if (currentUpgradeTarget.type === 'shaft') baseCost = state.mineCostBase * Math.pow(1.5, obj.id - 1);
   else baseCost = state[`${currentUpgradeTarget.type}CostBase`];
 
   const cost = GameMath.calculateUpgradeCost(baseCost, state.costMul, obj.level || 1, currentMultiplier);
-  
+
   if (state.balance >= cost) {
     state.balance -= cost;
     obj.level = (obj.level || 1) + currentMultiplier;
@@ -213,8 +223,8 @@ document.querySelectorAll('.manager-buy-btn').forEach(btn => {
     const state = window.gameScene.gameState;
     if (state.balance >= cost && currentManagerTarget) {
       state.balance -= cost;
-      let obj = currentManagerTarget.type === 'shaft' 
-        ? window.gameScene.shafts.find(s => s.id === currentManagerTarget.id) 
+      let obj = currentManagerTarget.type === 'shaft'
+        ? window.gameScene.shafts.find(s => s.id === currentManagerTarget.id)
         : window.gameScene[currentManagerTarget.type];
       obj.assignManager();
       window.updateHTMLUI();
@@ -226,7 +236,7 @@ document.querySelectorAll('.manager-buy-btn').forEach(btn => {
 const initInterval = setInterval(() => {
   if (window.gameScene && window.gameScene.gameState) {
     clearInterval(initInterval);
-    
+
     window.gameScene.events.on('open_upgrade', (target) => {
       currentUpgradeTarget = target;
       upgradePanel.classList.remove('translate-y-full');
@@ -239,14 +249,14 @@ const initInterval = setInterval(() => {
     });
 
     window.gameScene.events.on('watch_boost_ad', () => {
-        AdsManager.showRewardedAd(() => {
-            window.globalBoostEndTime = Date.now() + (60 * 60 * 1000); // 1 Hour
-            document.getElementById('boost-modal').classList.add('hidden');
-            document.getElementById('boost-modal').classList.remove('flex');
-            window.updateHTMLUI();
-        }, () => {
-            alert('Boost Ad failed or closed.');
-        });
+      AdsManager.showRewardedAd(() => {
+        window.globalBoostEndTime = Date.now() + (60 * 60 * 1000); // 1 Hour
+        document.getElementById('boost-modal').classList.add('hidden');
+        document.getElementById('boost-modal').classList.remove('flex');
+        window.updateHTMLUI();
+      }, () => {
+        alert('Boost Ad failed or closed.');
+      });
     });
 
     const rawSave = localStorage.getItem('idle_mining_save');
@@ -256,13 +266,13 @@ const initInterval = setInterval(() => {
         const state = window.gameScene.gameState;
         state.balance = save.balance;
         state.surfaceBin = save.surfaceBin;
-        
+
         window.gameScene.elevator.level = save.elevator.level;
-        if(save.elevator.hasManager) window.gameScene.elevator.assignManager();
-        
+        if (save.elevator.hasManager) window.gameScene.elevator.assignManager();
+
         window.gameScene.warehouse.level = save.warehouse.level;
-        if(save.warehouse.hasManager) window.gameScene.warehouse.assignManager();
-        
+        if (save.warehouse.hasManager) window.gameScene.warehouse.assignManager();
+
         save.shafts.forEach((savedShaft) => {
           let shaft = window.gameScene.shafts.find(s => s.id === savedShaft.id);
           if (!shaft) {
@@ -270,7 +280,7 @@ const initInterval = setInterval(() => {
             shaft = window.gameScene.shafts[window.gameScene.shafts.length - 1];
           }
           shaft.level = savedShaft.level;
-          if(savedShaft.manager) shaft.assignManager();
+          if (savedShaft.manager) shaft.assignManager();
           shaft.updateUI();
         });
 
@@ -280,33 +290,60 @@ const initInterval = setInterval(() => {
         if (pendingOfflineCash > 0) {
           document.getElementById('offline-earned-text').innerText = formatMoney(pendingOfflineCash);
           offlineModal.classList.remove('hidden'); offlineModal.classList.add('flex');
-          
+
           document.getElementById('offline-collect-btn').onclick = () => {
-              state.balance += pendingOfflineCash;
-              window.updateHTMLUI();
-              offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
+            state.balance += pendingOfflineCash;
+            window.updateHTMLUI();
+            offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
           };
-          
+
           const adBtn = document.getElementById('offline-collect-ad-btn');
           if (adBtn) {
-              adBtn.onclick = () => {
-                  AdsManager.showRewardedAd(() => {
-                      state.balance += (pendingOfflineCash * 2);
-                      window.updateHTMLUI();
-                      offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
-                  });
-              };
+            adBtn.onclick = () => {
+              AdsManager.showRewardedAd(() => {
+                state.balance += (pendingOfflineCash * 2);
+                window.updateHTMLUI();
+                offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
+              });
+            };
           }
         }
-      } catch(e) {}
+      } catch (e) { }
     }
-    
+
     document.getElementById('offline-close-btn').onclick = () => {
       offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
     };
 
     window.updateHTMLUI();
-    
+
+    const btnShare = document.getElementById('btn-share');
+    if (btnShare) {
+      btnShare.addEventListener('click', () => {
+        try {
+          if (typeof tt === 'undefined') {
+            throw new Error("tt objesi bulunamadı! SDK yüklenmemiş olabilir veya TikTok Webview dışında açıldı.");
+          }
+
+          if (tt.shareAppMessage) {
+            tt.shareAppMessage({
+              title: 'Idle Mining Empire - Come play!',
+              success(res) {
+                console.log('Share successful', res);
+              },
+              fail(err) {
+                console.error('%c TikTok Share API Fail Hatası:', 'color: white; background: red; font-weight: bold;', err);
+              }
+            });
+          } else {
+            throw new Error("Mevcut SDK'da tt.shareAppMessage fonksiyonu bulunamadı.");
+          }
+        } catch (error) {
+          console.error("%c TIKTOK SHARE HATASI:", "color: white; background: red; font-size: 14px; font-weight: bold;", error.message || error);
+        }
+      });
+    }
+
     setInterval(() => {
       const state = window.gameScene.gameState;
       const saveObj = {
@@ -319,20 +356,20 @@ const initInterval = setInterval(() => {
         globalBoostEndTime: window.globalBoostEndTime
       };
       localStorage.setItem('idle_mining_save', JSON.stringify(saveObj));
-      
+
       // Update Boost UI Timer
       const boostDisplay = document.getElementById('boost-timer-display');
       const timeText = document.getElementById('boost-time-text');
       if (window.globalBoostEndTime && Date.now() < window.globalBoostEndTime) {
-          boostDisplay.classList.remove('hidden');
-          boostDisplay.classList.add('flex');
-          const remaining = Math.floor((window.globalBoostEndTime - Date.now()) / 1000);
-          const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
-          const secs = (remaining % 60).toString().padStart(2, '0');
-          timeText.innerText = `${mins}:${secs}`;
+        boostDisplay.classList.remove('hidden');
+        boostDisplay.classList.add('flex');
+        const remaining = Math.floor((window.globalBoostEndTime - Date.now()) / 1000);
+        const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const secs = (remaining % 60).toString().padStart(2, '0');
+        timeText.innerText = `${mins}:${secs}`;
       } else {
-          boostDisplay.classList.add('hidden');
-          boostDisplay.classList.remove('flex');
+        boostDisplay.classList.add('hidden');
+        boostDisplay.classList.remove('flex');
       }
     }, 1000);
   }
