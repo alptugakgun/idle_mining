@@ -14,10 +14,19 @@
       
       <!-- Top Bar -->
       <div class="w-full bg-[#5D9FE6] border-b-4 border-[#3D71B8] relative py-2 pointer-events-auto">
+        <!-- Profile Area -->
+        <div id="player-profile" class="absolute left-3 top-1 flex items-center gap-1">
+            <img id="player-avatar" src="/assets/sprites/sprite_5.png" class="w-6 h-6 rounded-full border-2 border-white shadow-md bg-slate-300 object-cover" />
+            <div class="flex flex-col leading-none">
+                <span class="text-[7px] text-blue-200 font-bold uppercase tracking-wider">Welcome</span>
+                <span id="player-name" class="text-[10px] text-white font-black drop-shadow-md">Guest_Miner</span>
+            </div>
+        </div>
+        
         <!-- Global Boost Timer -->
-        <div id="boost-timer-display" class="hidden absolute left-3 top-3 bg-gradient-to-b from-[#22c55e] to-[#16a34a] border-b-2 border-green-800 rounded-lg px-2 py-1 shadow-md flex items-center gap-1">
-            <span class="text-[12px] font-black text-white drop-shadow">x2</span>
-            <span id="boost-time-text" class="text-[10px] font-bold text-white drop-shadow">59:59</span>
+        <div id="boost-timer-display" class="hidden absolute left-3 top-8 bg-gradient-to-b from-[#22c55e] to-[#16a34a] border-b-2 border-green-800 rounded-lg px-2 py-0.5 shadow-md flex items-center gap-1">
+            <span class="text-[10px] font-black text-white drop-shadow">x2</span>
+            <span id="boost-time-text" class="text-[9px] font-bold text-white drop-shadow">59:59</span>
         </div>
         
         <!-- Center Cash Display -->
@@ -57,6 +66,9 @@
 
       <!-- Right Floating Action Buttons -->
       <div class="absolute right-2 top-24 flex flex-col gap-3 pointer-events-auto">
+        <button id="btn-share" class="btn-press w-12 h-12 bg-black rounded-xl border-b-4 border-gray-800 border-2 border-gray-600 flex flex-col items-center justify-center shadow-lg">
+          <span class="text-white font-black text-[9px] text-center leading-none mt-1">TikTok<br/>Share</span>
+        </button>
         <button id="btn-wheel" class="btn-press w-12 h-12 bg-[#3b82f6] rounded-full border-b-4 border-[#1d4ed8] border-2 border-[#93c5fd] flex items-center justify-center shadow-lg">
           <span class="text-2xl drop-shadow-md">🎡</span>
         </button>

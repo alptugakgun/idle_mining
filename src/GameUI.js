@@ -79,9 +79,29 @@ export default class GameUI {
     const boostAdBtn = document.getElementById('boost-ad-btn');
     if (boostAdBtn) {
         boostAdBtn.onclick = () => {
-            // Wait for AdsManager to be available on window, but GameUI is imported locally, so we can just use event or import it.
-            // Since AdsManager is in gameLogic.js and not imported here, we'll emit an event.
             this.scene.events.emit('watch_boost_ad');
+        };
+    }
+    
+    const shareBtn = document.getElementById('btn-share');
+    if (shareBtn) {
+        shareBtn.onclick = () => {
+            const level = this.scene.shafts.length;
+            const balance = GameMath.formatMoney(this.scene.gameState.balance);
+            const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
+            
+            if (typeof tt !== 'undefined' && tt.shareAppMessage) {
+                tt.shareAppMessage({
+                    title: 'Idle Mining Empire',
+                    desc: msg,
+                    imageUrl: '',
+                    success() { console.log('Share successful'); },
+                    fail(e) { console.log('Share failed', e); }
+                });
+            } else {
+                console.log(`[TikTok Share Triggered] Message: "${msg}"`);
+                alert(`Mock Share!\n\n${msg}`);
+            }
         };
     }
 

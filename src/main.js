@@ -27,6 +27,43 @@ const config = {
 // Global offline earning logic
 let lastTime = Date.now();
 
+window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
+
+function initTikTokSDK() {
+    if (typeof tt !== 'undefined') {
+        tt.login({
+            force: false,
+            success(res) {
+                console.log('Login successful');
+                tt.getUserInfo({
+                    success(info) {
+                        window.playerProfile.name = info.userInfo.nickName || 'Player';
+                        window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
+                        updateProfileUI();
+                    },
+                    fail(err) { console.log('GetUserInfo failed', err); }
+                });
+            },
+            fail(err) {
+                console.log('Login failed', err);
+                updateProfileUI();
+            }
+        });
+    } else {
+        console.log('Localhost: Mock TikTok Login successful.');
+        updateProfileUI();
+    }
+}
+
+function updateProfileUI() {
+    const nameEl = document.getElementById('player-name');
+    const avatarEl = document.getElementById('player-avatar');
+    if (nameEl) nameEl.innerText = window.playerProfile.name;
+    if (avatarEl) avatarEl.src = window.playerProfile.avatar;
+}
+
+initTikTokSDK();
+
 // Sync UI Layer size to match dynamically scaled canvas
 setInterval(() => {
     const canvas = document.querySelector('canvas');
