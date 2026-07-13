@@ -92,25 +92,31 @@ export default class GameUI {
     if (shareBtn) {
         shareBtn.onclick = (e) => {
             e.stopPropagation(); e.preventDefault();
-            window.logToScreen("Share tetiklendi. TTMinis objesi: " + typeof TTMinis);
-            const level = this.scene.shafts.length;
-            const balance = GameMath.formatMoney(this.scene.gameState.balance);
-            const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
-            
-            if (typeof TTMinis !== 'undefined') {
-                window.logToScreen("TT İçindekiler: " + Object.keys(TTMinis).join(', '));
-            }
-
             try {
-                TTMinis.shareAppMessage({
-                    title: 'Idle Mining Empire',
-                    desc: msg,
-                    imageUrl: '',
-                    success() { window.logToScreen("TikTok Share Başarılı!"); },
-                    fail(err) { window.logToScreen("TikTok Share API Fail Hatası: " + JSON.stringify(err)); }
+                window.logToScreen("Reklam yükleniyor...");
+                // TikTok panelinden alınacak test adUnitId'si
+                let videoAd = TTMinis.createRewardedVideoAd({
+                    adUnitId: 'TEST_AD_UNIT_ID' 
                 });
-            } catch (error) {
-                window.logToScreen("TikTok Share Hatası: " + (error.message || error.toString()));
+
+                videoAd.show().then(() => {
+                    window.logToScreen("Reklam başarıyla açıldı!");
+                }).catch((err) => {
+                    window.logToScreen("Reklam gösterim hatası: " + (err.message || JSON.stringify(err)));
+                });
+
+                videoAd.onClose((res) => {
+                    if (res && res.isEnded) {
+                        window.logToScreen("Reklam tamamlandı! +1000 Ödül!");
+                        // Başarılı izleme sonrası oyuncuya ödül ver
+                        this.scene.gameState.balance += 1000;
+                        this.updateUI();
+                    } else {
+                        window.logToScreen("Reklam yarıda kesildi, ödül iptal.");
+                    }
+                });
+            } catch (e) {
+                window.logToScreen("Reklam API Hatası: " + e.message);
             }
         };
     }
