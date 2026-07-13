@@ -92,21 +92,26 @@ export default class GameUI {
     if (shareBtn) {
         shareBtn.onclick = (e) => {
             e.stopPropagation(); e.preventDefault();
+            alert("Share tetiklendi. tt objesi: " + typeof tt);
             const level = this.scene.shafts.length;
             const balance = GameMath.formatMoney(this.scene.gameState.balance);
             const msg = `I just reached Level ${level} and made $${balance} in Idle Mining Empire!`;
             
-            if (typeof tt !== 'undefined' && tt.shareAppMessage) {
-                tt.shareAppMessage({
-                    title: 'Idle Mining Empire',
-                    desc: msg,
-                    imageUrl: '',
-                    success() { console.log('Share successful'); },
-                    fail(e) { console.log('Share failed', e); }
-                });
-            } else {
-                console.log(`[TikTok Share Triggered] Message: "${msg}"`);
-                alert(`Mock Share!\n\n${msg}`);
+            try {
+                if (typeof tt !== 'undefined' && tt.shareAppMessage) {
+                    tt.shareAppMessage({
+                        title: 'Idle Mining Empire',
+                        desc: msg,
+                        imageUrl: '',
+                        success() { alert("TikTok Share Başarılı!"); console.log('Share successful'); },
+                        fail(err) { alert("TikTok Share API Fail Hatası: " + JSON.stringify(err)); console.log('Share failed', err); }
+                    });
+                } else {
+                    console.log(`[TikTok Share Triggered] Message: "${msg}"`);
+                    alert(`Mock Share!\n\n${msg}`);
+                }
+            } catch (error) {
+                alert("TikTok Share Hatası: " + JSON.stringify(error));
             }
         };
     }

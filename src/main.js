@@ -30,40 +30,48 @@ let lastTime = Date.now();
 window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
 
 function initTikTokSDK() {
+  alert("initTikTokSDK çağrıldı. tt objesi: " + typeof tt);
   if (typeof tt !== 'undefined') {
     try {
       if (tt.init) {
         tt.init({
-          clientKey: "sbaw5t3lvvcxfi4puy"
+          clientKey: "sbaw5t3lvvcxfi4puy",
+          success(res) { alert("tt.init başarılı!"); },
+          fail(err) { alert("tt.init başarısız: " + JSON.stringify(err)); }
         });
       }
     } catch (e) {
       console.error("%c TikTok SDK Init Hatası:", "color: white; background: red; font-weight: bold;", e);
-      alert("SDK Başlatılamadı: " + (e.message || e));
+      alert("SDK Başlatılamadı (catch): " + (e.message || JSON.stringify(e)));
     }
 
     // AppID (Client Key) Entegrasyonu
     const TIKTOK_APP_ID = 'awhls5sr2gscusax';
 
-    tt.login({
-      appId: TIKTOK_APP_ID,
-      force: false,
-      success(res) {
-        console.log('Login successful');
-        tt.getUserInfo({
-          success(info) {
-            window.playerProfile.name = info.userInfo.nickName || 'Player';
-            window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
-            updateProfileUI();
+    try {
+        tt.login({
+          appId: TIKTOK_APP_ID,
+          force: false,
+          success(res) {
+            console.log('Login successful');
+            tt.getUserInfo({
+              success(info) {
+                window.playerProfile.name = info.userInfo.nickName || 'Player';
+                window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
+                updateProfileUI();
+              },
+              fail(err) { console.log('GetUserInfo failed', err); alert("GetUserInfo hatası: " + JSON.stringify(err)); }
+            });
           },
-          fail(err) { console.log('GetUserInfo failed', err); }
+          fail(err) {
+            console.log('Login failed', err);
+            alert("tt.login başarısız: " + JSON.stringify(err));
+            updateProfileUI();
+          }
         });
-      },
-      fail(err) {
-        console.log('Login failed', err);
-        updateProfileUI();
-      }
-    });
+    } catch (err) {
+        alert("tt.login catch hatası: " + JSON.stringify(err));
+    }
   } else {
     console.log('Localhost: Mock TikTok Login successful.');
     updateProfileUI();
