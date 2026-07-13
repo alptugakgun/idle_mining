@@ -24,34 +24,10 @@ export const GameMath = {
 
 export const AdsManager = {
     showRewardedAd: (onSuccess, onFail) => {
-        if (typeof tt !== 'undefined') {
-            const videoAd = tt.createRewardedVideoAd({
-                adUnitId: 'TEST_AD_ID'
-            });
-            
-            videoAd.show().catch(() => {
-                videoAd.load()
-                    .then(() => videoAd.show())
-                    .catch(err => {
-                        console.log('Video reklam yüklenemedi', err);
-                        if (onFail) onFail();
-                    });
-            });
-
-            videoAd.onClose(res => {
-                if (res && res.isEnded || res === undefined) {
-                    onSuccess();
-                } else {
-                    if (onFail) onFail();
-                }
-                videoAd.offClose();
-            });
-        } else {
-            console.log("Mock Ad Started...");
-            setTimeout(() => {
-                console.log("Mock Ad Finished successfully.");
-                onSuccess();
-            }, 2000);
-        }
+        console.log("Reklam İzleniyor... (Mock)");
+        setTimeout(() => {
+            console.log("Mock Reklam Bitti! Ödül Veriliyor.");
+            onSuccess();
+        }, 2000);
     }
 };
