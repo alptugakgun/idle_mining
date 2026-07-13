@@ -41,8 +41,14 @@ export default class GameUI {
     document.querySelectorAll('.upgrade-mul-btn').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation(); e.preventDefault();
-        document.querySelectorAll('.upgrade-mul-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-700'));
-        e.target.classList.replace('bg-slate-700', 'bg-blue-600');
+        // Reset all multiplier buttons to inactive state
+        document.querySelectorAll('.upgrade-mul-btn').forEach(b => {
+          b.classList.remove('btn-blue');
+          b.classList.add('bg-black/50', 'text-slate-300', 'border', 'border-white/20');
+        });
+        // Set active state on clicked button
+        e.target.classList.add('btn-blue');
+        e.target.classList.remove('bg-black/50', 'text-slate-300', 'border', 'border-white/20');
         this.upgradeMultiplier = e.target.dataset.mul === 'MAX' ? 'MAX' : parseInt(e.target.dataset.mul);
         this.refreshUpgradePanel();
       };
@@ -92,33 +98,15 @@ export default class GameUI {
     if (shareBtn) {
         shareBtn.onclick = (e) => {
             e.stopPropagation(); e.preventDefault();
-            try {
-                window.logToScreen("Reklam yükleniyor...");
-                // TikTok panelinden alınacak test adUnitId'si
-                let videoAd = TTMinis.createRewardedVideoAd({
-                    adUnitId: 'TEST_AD_UNIT_ID' 
-                });
-
-                videoAd.show().then(() => {
-                    window.logToScreen("Reklam başarıyla açıldı!");
-                }).catch((err) => {
-                    window.logToScreen("Reklam API hatası, test ödülü verildi!");
+            // Use centralized ad system from main.js
+            if (window.showRewardedAd) {
+                window.showRewardedAd(() => {
                     this.scene.gameState.balance += 1000;
                     this.updateUI();
+                    window.logToScreen("Ad completed! +1000 Reward!");
+                }, () => {
+                    window.logToScreen("Ad interrupted, reward cancelled.");
                 });
-
-                videoAd.onClose((res) => {
-                    if (res && res.isEnded) {
-                        window.logToScreen("Reklam tamamlandı! +1000 Ödül!");
-                        // Başarılı izleme sonrası oyuncuya ödül ver
-                        this.scene.gameState.balance += 1000;
-                        this.updateUI();
-                    } else {
-                        window.logToScreen("Reklam yarıda kesildi, ödül iptal.");
-                    }
-                });
-            } catch (e) {
-                window.logToScreen("Reklam API Hatası: " + e.message);
             }
         };
     }
@@ -212,13 +200,14 @@ export default class GameUI {
     this.upgradeLevelText.innerText = `Lvl ${entity.level} ➔ ${entity.level + mul}`;
     this.upgradeCostText.innerText = GameMath.formatMoney(cost) + ' C';
     
+    // Correctly toggle button state using actual CSS classes
     if (this.gameState.balance >= cost) {
-        this.upgradeActionBtn.classList.replace('from-slate-500', 'from-green-500');
-        this.upgradeActionBtn.classList.replace('to-slate-600', 'to-green-600');
+        this.upgradeActionBtn.classList.remove('btn-disabled');
+        this.upgradeActionBtn.classList.add('btn-green');
         this.upgradeActionBtn.disabled = false;
     } else {
-        this.upgradeActionBtn.classList.replace('from-green-500', 'from-slate-500');
-        this.upgradeActionBtn.classList.replace('to-green-600', 'to-slate-600');
+        this.upgradeActionBtn.classList.remove('btn-green');
+        this.upgradeActionBtn.classList.add('btn-disabled');
         this.upgradeActionBtn.disabled = true;
     }
   }

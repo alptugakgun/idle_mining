@@ -15,13 +15,15 @@ export default class GameScene extends Phaser.Scene {
     this.ch = this.cameras.main.height;
     this.surfaceY = 300;
     
-    this.gameState = window.initialGameState || {
+    // Always start with default constants, then merge any saved dynamic values on top
+    const defaults = {
       balance: 77,
       mineProdBase: 10, elevatorCapBase: 100, warehouseCapBase: 100,
       mineCostBase: 150, elevatorCostBase: 100, warehouseCostBase: 100,
       costMul: 1.15,
       surfaceBin: 0
     };
+    this.gameState = { ...defaults, ...(window.initialGameState || {}) };
 
     // Background Sky & Grass (Horizon)
     this.add.tileSprite(this.cw/2, this.surfaceY, this.cw, 256, 'bg_sky').setOrigin(0.5, 1).setScrollFactor(0);
@@ -92,6 +94,40 @@ export default class GameScene extends Phaser.Scene {
     return this.add.dom(x, y, el);
   }
 
+  // Screen shake effect for dig feedback
+  digShake() {
+    this.cameras.main.shake(120, 0.005);
+  }
+
+  // Dirt particle burst at dig button
+  spawnDigParticles(worldY) {
+    const cx = this.cw / 2;
+    for (let i = 0; i < 6; i++) {
+      // Create small dirt-colored rectangles as particles
+      const size = 3 + Math.random() * 5;
+      const colors = [0x8B6914, 0x5c3a21, 0x9b6b3a, 0x3b2818, 0xd4a540];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const particle = this.add.rectangle(
+        cx + Phaser.Math.Between(-60, 60), 
+        worldY, 
+        size, size, color
+      ).setAlpha(0.8);
+      
+      this.tweens.add({
+        targets: particle,
+        x: particle.x + Phaser.Math.Between(-80, 80),
+        y: worldY - Phaser.Math.Between(20, 80),
+        alpha: 0,
+        angle: Phaser.Math.Between(-180, 180),
+        scale: 0,
+        duration: 500 + Math.random() * 300,
+        delay: i * 30,
+        ease: 'Quad.easeOut',
+        onComplete: () => particle.destroy()
+      });
+    }
+  }
+
   createNewShaftButton() {
     if (this.newShaftContainer) this.newShaftContainer.destroy();
     
@@ -102,20 +138,25 @@ export default class GameScene extends Phaser.Scene {
     
     const container = document.createElement('div');
     container.className = 'w-[250px] flex flex-col gap-1 items-center';
+    container.style.position = 'relative';
     
     const progressBar = document.createElement('div');
-    progressBar.className = 'w-full h-3 bg-[#451a03] rounded-full overflow-hidden border border-[#290f02] relative shadow-inner';
+    progressBar.className = 'w-full h-3.5 rounded-full overflow-hidden border border-[#290f02] relative dig-progress-bar';
+    progressBar.style.background = '#1a0d05';
     const progressFill = document.createElement('div');
-    progressFill.className = 'h-full bg-gradient-to-r from-pink-500 to-purple-500 w-0 transition-all duration-200';
+    progressFill.className = 'h-full dig-progress-fill w-0 rounded-full';
+    progressFill.style.transition = 'width 0.2s ease-out';
     progressBar.appendChild(progressFill);
     
     const progressText = document.createElement('div');
     progressText.className = 'text-white font-bold text-[10px] drop-shadow-md';
+    progressText.style.fontFamily = "'Outfit', sans-serif";
     progressText.innerText = '0%';
     
     const btn = document.createElement('button');
     btn.className = 'btn-press w-full py-3 btn-blue rounded-[20px] text-white font-black text-xl shadow-xl flex items-center justify-center gap-2 mt-1';
-    btn.innerHTML = `<img src="/assets/sprites/sprite_1.png" class="w-6 h-6"/> ${digCostPerTap} Dig`;
+    btn.style.fontFamily = "'Outfit', sans-serif";
+    btn.innerHTML = `<img src="/assets/sprites/sprite_1.png" class="w-6 h-6"/> ${digCostPerTap} Dig ⛏️`;
     
     this.digProgress = 0;
     
@@ -128,14 +169,23 @@ export default class GameScene extends Phaser.Scene {
             progressFill.style.width = this.digProgress + '%';
             progressText.innerText = Math.floor(this.digProgress) + '%';
             
+            // Dig feedback effects
+            this.digShake();
+            this.spawnDigParticles(yPos);
+            
             // Spawn a little worker icon popup for juice
             const juice = document.createElement('span');
-            juice.innerText = '👷';
-            juice.className = 'absolute text-xl pointer-events-none animate-bounce drop-shadow-lg';
+            juice.innerText = '⛏️';
+            juice.className = 'absolute text-xl pointer-events-none drop-shadow-lg';
             juice.style.left = (Math.random() * 80 + 10) + '%';
             juice.style.top = '-20px';
+            juice.style.transition = 'all 0.6s ease-out';
             container.appendChild(juice);
-            setTimeout(() => juice.remove(), 1000);
+            requestAnimationFrame(() => {
+              juice.style.top = '-50px';
+              juice.style.opacity = '0';
+            });
+            setTimeout(() => juice.remove(), 700);
 
             if (this.digProgress >= 100) {
                 this.addShaft();

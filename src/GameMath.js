@@ -41,6 +41,13 @@ export default class GameMath {
     return count;
   }
 
+  static calculateOfflineEarnings(lastLogoutTime, currentTime, prodPerSec) {
+    if (!lastLogoutTime) return 0;
+    const diffSec = Math.floor((currentTime - lastLogoutTime) / 1000);
+    if (diffSec < 60) return 0;
+    return Math.floor(diffSec * prodPerSec * 0.10);
+  }
+
   static formatMoney(num) {
     if (num < 1000) return num.toFixed(2);
     if (num < 1000000) return (num / 1000).toFixed(2) + 'K';

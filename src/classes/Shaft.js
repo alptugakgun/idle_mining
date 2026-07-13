@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import GameMath from '../GameMath.js';
 
 export default class Shaft {
   constructor(scene, id, y) {
@@ -59,8 +60,9 @@ export default class Shaft {
                         targets: this.minerSprite, x: 220, duration: 1500,
                         onComplete: () => {
                             this.minerSprite.scaleX = 1;
-                            // Need to dynamically calculate production via GameMath
-                            const prod = this.scene.gameState ? this.scene.gameState.mineProdBase * this.level : 10 * this.level; 
+                            // Use GameMath for correct production with milestones & global boost
+                            const baseProd = this.scene.gameState ? this.scene.gameState.mineProdBase : 10;
+                            const prod = GameMath.getProduction(baseProd, this.level);
                             this.binAmount += prod;
                             this.updateUI();
                             this.scene.time.delayedCall(500, () => this.startCycle());

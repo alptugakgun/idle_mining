@@ -3,46 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Idle Mining Empire Clone</title>
+  <title>Idle Mining Empire</title>
+  <meta name="description" content="Dig deep, manage your miners, and build the ultimate idle mining empire!" />
+  <link rel="icon" type="image/png" href="/assets/favicon-192x192.png" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <script src="https://connect.tiktok-minis.com/drama/sdk.js"></script>
-  <div id="debug-console" style="position:fixed; bottom:100px; top:auto; left:0; width:100%; height:120px; background:rgba(0,0,0,0.8); color:lime; z-index:9999; overflow-y:auto; font-size:10px; pointer-events:none; padding:5px;">DEBUG LOG:</div>
+  
+  <!-- Debug Console (hidden by default, toggle via dev tools) -->
+  <div id="debug-console" style="display:none; position:fixed; bottom:100px; top:auto; left:0; width:100%; height:120px; background:rgba(0,0,0,0.85); color:lime; z-index:9999; overflow-y:auto; font-size:10px; pointer-events:none; padding:5px; font-family:monospace;">DEBUG LOG:</div>
+  
   <div id="mobile-wrapper">
     <div id="game-container"></div>
 
     <div id="ui-layer" class="absolute pointer-events-none flex flex-col justify-between z-10 overflow-hidden" style="top: 0; left: 0; width: 100%; height: 100%;">
       
-      <!-- Top Bar -->
-      <div class="w-full bg-[#5D9FE6] border-b-4 border-[#3D71B8] relative py-2 pointer-events-auto shadow-md">
+      <!-- ═══════════════ TOP BAR ═══════════════ -->
+      <div class="w-full top-bar-glass relative py-2.5 pointer-events-auto">
         <!-- Profile Area -->
-        <div id="player-profile" class="absolute left-3 top-1 flex items-center gap-1">
-            <img id="player-avatar" src="/assets/sprites/sprite_5.png" class="w-7 h-7 rounded-full border-2 border-white shadow-md bg-slate-300 object-cover" />
+        <div id="player-profile" class="absolute left-3 top-1.5 flex items-center gap-1.5">
+            <img id="player-avatar" src="/assets/sprites/sprite_5.png" class="w-8 h-8 rounded-full border-2 border-white/60 shadow-lg bg-slate-300 object-cover" />
             <div class="flex flex-col leading-none">
-                <span class="text-[8px] text-blue-200 font-bold uppercase tracking-wider text-shadow">Welcome</span>
-                <span id="player-name" class="text-[11px] text-white font-black drop-shadow-md">Guest_Miner</span>
+                <span class="text-[8px] text-blue-200/80 font-bold uppercase tracking-wider">Welcome</span>
+                <span id="player-name" class="text-[11px] text-white font-extrabold drop-shadow-md">Guest_Miner</span>
             </div>
         </div>
         
         <!-- Global Boost Timer -->
-        <div id="boost-timer-display" class="hidden absolute left-3 top-9 btn-green rounded-lg px-2 py-0.5 shadow-md flex items-center gap-1">
+        <div id="boost-timer-display" class="hidden absolute left-3 top-10 btn-green rounded-lg px-2 py-0.5 shadow-md flex items-center gap-1">
             <span class="text-[11px] font-black text-white drop-shadow">x2</span>
             <span id="boost-time-text" class="text-[10px] font-bold text-white drop-shadow">59:59</span>
         </div>
         
         <!-- Center Cash Display -->
         <div class="flex flex-col items-center justify-center w-full">
-          <div class="text-white font-black text-[13px] drop-shadow-md tracking-widest leading-none mb-1 text-shadow">CASH</div>
-          <div class="flex items-center justify-center gap-2 bg-black/20 px-4 py-1 rounded-full shadow-inner border border-white/20">
+          <div class="text-white font-black text-[11px] drop-shadow-md tracking-[0.2em] leading-none mb-1.5 uppercase font-title" style="font-family: 'Bungee', cursive;">CASH</div>
+          <div class="flex items-center justify-center gap-2 cash-shimmer px-5 py-1.5 rounded-full shadow-inner border border-white/15">
             <!-- Double Coin Icon -->
-            <div class="relative w-8 h-8">
-              <img src="/assets/sprites/sprite_1.png" class="w-full h-full object-contain drop-shadow-md" />
-              <img src="/assets/sprites/sprite_1.png" class="w-5 h-5 object-contain absolute -bottom-1 -right-2 drop-shadow-md" />
+            <div class="relative w-7 h-7">
+              <img src="/assets/sprites/sprite_1.png" class="w-full h-full object-contain drop-shadow-md coin-spin" />
+              <img src="/assets/sprites/sprite_1.png" class="w-4 h-4 object-contain absolute -bottom-1 -right-2 drop-shadow-md" />
             </div>
             <!-- Value -->
-            <div class="text-white font-black text-[22px] tracking-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] flex items-center ml-1">
-              <span class="text-lg mr-1 text-gold">$</span><span id="balance-display">0.00</span>
+            <div class="text-white font-black text-[22px] tracking-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] flex items-center ml-0.5" style="font-family: 'Outfit', sans-serif;">
+              <span class="text-lg mr-0.5 text-gold">$</span><span id="balance-display">0.00</span>
             </div>
           </div>
         </div>
@@ -53,66 +58,70 @@
         </button>
       </div>
 
-      <!-- Left Floating Action Buttons -->
+      <!-- ═══════════════ LEFT FLOATING ACTIONS ═══════════════ -->
       <div class="absolute left-2 top-24 flex flex-col gap-3 pointer-events-auto">
-        <button id="btn-engineer" class="btn-press w-12 h-12 btn-blue rounded-xl flex flex-col items-center justify-center shadow-lg">
-          <span class="text-xl drop-shadow-md">👷</span><span class="text-[8px] text-white font-bold leading-none mt-1">MGR</span>
+        <button id="btn-engineer" class="btn-press fab-btn w-12 h-12 btn-blue rounded-xl flex flex-col items-center justify-center shadow-lg">
+          <span class="text-xl drop-shadow-md">👷</span><span class="text-[8px] text-white font-bold leading-none mt-0.5">MGR</span>
         </button>
-        <button id="btn-extras" class="btn-press w-12 h-12 btn-blue rounded-xl flex flex-col items-center justify-center shadow-lg">
-          <span class="text-xl drop-shadow-md">🚧</span><span class="text-[8px] text-white font-bold leading-none mt-1">EXTRAS</span>
+        <button id="btn-extras" class="btn-press fab-btn w-12 h-12 btn-blue rounded-xl flex flex-col items-center justify-center shadow-lg">
+          <span class="text-xl drop-shadow-md">🚧</span><span class="text-[8px] text-white font-bold leading-none mt-0.5">EXTRAS</span>
         </button>
       </div>
 
-      <!-- Right Floating Action Buttons -->
+      <!-- ═══════════════ RIGHT FLOATING ACTIONS ═══════════════ -->
       <div class="absolute right-2 top-24 flex flex-col gap-3 pointer-events-auto">
-        <button id="btn-share" class="btn-press w-20 h-12 btn-green rounded-xl flex flex-col items-center justify-center shadow-lg">
+        <button id="btn-share" class="btn-press fab-btn w-20 h-12 btn-green rounded-xl flex flex-col items-center justify-center shadow-lg">
           <span class="text-white font-black text-[10px] text-center leading-none mt-1">📺<br/>Watch Ad</span>
         </button>
       </div>
 
-      <!-- Bottom Nav Bar -->
-      <div class="w-full bg-[#f8fafc] border-t-2 border-slate-300 pointer-events-auto flex justify-around items-end px-2 pb-2 pt-2 pb-[env(safe-area-inset-bottom)] relative shadow-[0_-10px_20px_rgba(0,0,0,0.2)]">
-        <button id="btn-shop" class="btn-press flex flex-col items-center justify-center">
-            <span class="text-3xl drop-shadow-md">🏪</span>
+      <!-- ═══════════════ BOTTOM NAV BAR ═══════════════ -->
+      <div class="w-full border-t-2 border-[#5c3a21] pointer-events-auto flex justify-around items-end px-2 pb-2 pt-2 pb-[env(safe-area-inset-bottom)] relative shadow-[0_-10px_20px_rgba(0,0,0,0.3)]" style="background: linear-gradient(180deg, #4a2e14 0%, #382110 100%);">
+        <button id="btn-shop" class="btn-press flex flex-col items-center justify-center gap-0.5 min-w-[48px]">
+            <span class="text-2xl drop-shadow-md">🏪</span>
+            <span class="text-[9px] text-white/70 font-bold">Shop</span>
         </button>
-        <button id="btn-lab" class="btn-press flex flex-col items-center justify-center">
-            <span class="text-3xl drop-shadow-md">🧪</span>
+        <button id="btn-lab" class="btn-press flex flex-col items-center justify-center gap-0.5 min-w-[48px]">
+            <span class="text-2xl drop-shadow-md">🧪</span>
+            <span class="text-[9px] text-white/70 font-bold">Lab</span>
         </button>
-        <div class="relative -top-6">
-            <button id="boost-btn" class="btn-press w-32 h-16 btn-gold rounded-2xl flex flex-col items-center justify-center shadow-xl">
-                <span class="text-white font-black text-[14px] drop-shadow-md">x2 BOOST</span>
-                <span class="text-white font-bold text-lg drop-shadow-md leading-none">FREE</span>
+        <div class="relative -top-5">
+            <button id="boost-btn" class="btn-press boost-glow w-28 h-14 btn-gold rounded-2xl flex flex-col items-center justify-center shadow-xl">
+                <span class="text-[#3e2723] font-black text-[14px] drop-shadow-sm" style="font-family: 'Bungee', cursive;">x2 BOOST</span>
+                <span class="text-[#5c3a21] font-extrabold text-base leading-none">FREE</span>
             </button>
         </div>
-        <button id="btn-trophy" class="btn-press flex flex-col items-center justify-center">
-            <span class="text-3xl drop-shadow-md">🏆</span>
+        <button id="btn-trophy" class="btn-press flex flex-col items-center justify-center gap-0.5 min-w-[48px]">
+            <span class="text-2xl drop-shadow-md">🏆</span>
+            <span class="text-[9px] text-white/70 font-bold">Rank</span>
         </button>
-        <button id="btn-calendar" class="btn-press flex flex-col items-center justify-center relative">
-            <span class="text-3xl drop-shadow-md">📅</span>
-            <div class="absolute top-0 right-[-5px] w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-white font-bold text-[10px] shadow-sm">1</div>
+        <button id="btn-calendar" class="btn-press flex flex-col items-center justify-center gap-0.5 min-w-[48px] relative">
+            <span class="text-2xl drop-shadow-md">📅</span>
+            <span class="text-[9px] text-white/70 font-bold">Daily</span>
+            <div class="notification-dot absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-[#4a2e14] flex items-center justify-center text-white font-bold text-[8px] shadow-sm">1</div>
         </button>
       </div>
 
-      <!-- Info Modal -->
+      <!-- ═══════════════ INFO MODAL ═══════════════ -->
       <div id="info-modal" class="hidden absolute inset-0 z-50 bg-black/60 items-center justify-center pointer-events-auto px-4 modal-overlay">
         <div class="panel-wood rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center text-center">
-          <h2 id="info-modal-title" class="text-2xl font-black text-gold mb-4 drop-shadow-md">MODAL</h2>
-          <p id="info-modal-text" class="text-white font-bold mb-6 drop-shadow">Text content goes here.</p>
-          <button id="info-modal-close" class="btn-press w-full py-3 btn-blue rounded-2xl font-black text-xl">OK</button>
+          <h2 id="info-modal-title" class="text-2xl font-black text-gold mb-4 drop-shadow-md" style="font-family: 'Bungee', cursive;">MODAL</h2>
+          <p id="info-modal-text" class="text-white/90 font-semibold mb-6 drop-shadow text-sm">Text content goes here.</p>
+          <button id="info-modal-close" class="btn-press w-full py-3 btn-blue rounded-2xl font-black text-xl shadow-lg">OK</button>
         </div>
       </div>
       
-      <!-- Offline Earnings Modal -->
+      <!-- ═══════════════ OFFLINE EARNINGS MODAL ═══════════════ -->
       <div id="offline-modal" class="hidden absolute inset-0 z-[70] bg-black/70 flex-col items-center justify-center pointer-events-auto px-4 modal-overlay">
         <div class="panel-wood rounded-2xl p-6 w-full max-w-xs shadow-2xl flex flex-col items-center text-center">
-          <h2 class="text-2xl font-black text-gold mb-2 drop-shadow-md">Welcome Back!</h2>
-          <p class="text-[11px] text-white font-bold mb-6 drop-shadow">While you were away, your miners kept<br/>working hard and generated:</p>
-          <div class="flex items-center justify-center gap-3 bg-black/30 rounded-xl px-6 py-3 border border-[#8b5a33] mb-6 shadow-inner w-full">
-            <img src="/assets/sprites/sprite_1.png" class="w-10 h-10 drop-shadow-lg" />
-            <span id="offline-earned-text" class="text-gold font-black text-3xl drop-shadow-md">0</span>
+          <h2 class="text-2xl font-black text-gold mb-2 drop-shadow-md" style="font-family: 'Bungee', cursive;">Welcome Back!</h2>
+          <p class="text-[11px] text-white/80 font-semibold mb-5 drop-shadow">While you were away, your miners kept<br/>working hard and generated:</p>
+          <div class="flex items-center justify-center gap-3 bg-black/30 rounded-xl px-6 py-3 border border-[#8b5a33]/60 mb-5 shadow-inner w-full">
+            <img src="/assets/sprites/sprite_1.png" class="w-10 h-10 drop-shadow-lg coin-spin" />
+            <span id="offline-earned-text" class="text-gold font-black text-3xl drop-shadow-md" style="font-family: 'Outfit', sans-serif;">0</span>
           </div>
           
-          <button id="offline-collect-ad-btn" class="btn-press w-full py-4 mb-3 btn-green rounded-xl font-black text-[15px] shadow-lg flex items-center justify-center gap-2">
+          <button id="offline-collect-ad-btn" class="btn-press w-full py-3.5 mb-3 btn-green rounded-xl font-black text-[15px] shadow-lg flex items-center justify-center gap-2">
             <span class="text-2xl drop-shadow-md">▶️</span> Watch Ad for 2x
           </button>
           
@@ -120,23 +129,23 @@
         </div>
       </div>
 
-      <!-- Boost Modal -->
+      <!-- ═══════════════ BOOST MODAL ═══════════════ -->
       <div id="boost-modal" class="hidden absolute inset-0 z-[70] bg-black/70 flex-col items-center justify-center pointer-events-auto px-4 modal-overlay">
         <div class="panel-wood rounded-2xl p-6 w-full max-w-xs shadow-2xl flex flex-col items-center text-center">
-          <h2 class="text-2xl font-black text-gold mb-2 drop-shadow-md">GLOBAL BOOST</h2>
-          <p class="text-[13px] text-white font-bold mb-6 drop-shadow">Boost ALL your mines by 2x for 1 hour!</p>
-          <button id="boost-ad-btn" class="btn-press w-full py-4 mb-3 btn-green rounded-xl font-black text-lg shadow-lg flex items-center justify-center gap-2">
+          <h2 class="text-2xl font-black text-gold mb-2 drop-shadow-md" style="font-family: 'Bungee', cursive;">GLOBAL BOOST</h2>
+          <p class="text-[13px] text-white/80 font-semibold mb-5 drop-shadow">Boost ALL your mines by 2x for 1 hour!</p>
+          <button id="boost-ad-btn" class="btn-press w-full py-3.5 mb-3 btn-green rounded-xl font-black text-lg shadow-lg flex items-center justify-center gap-2">
             <span class="text-2xl drop-shadow-md">▶️</span> Watch Ad
           </button>
           <button id="boost-close-btn" class="btn-press w-full py-3 btn-red rounded-xl font-bold text-sm">Close</button>
         </div>
       </div>
 
-      <!-- Upgrade Panel -->
-      <div id="upgrade-panel" class="absolute bottom-0 left-0 w-full panel-wood !rounded-t-3xl transform translate-y-full transition-transform duration-300 z-50 pointer-events-auto flex flex-col">
+      <!-- ═══════════════ UPGRADE PANEL ═══════════════ -->
+      <div id="upgrade-panel" class="absolute bottom-0 left-0 w-full panel-wood !rounded-t-3xl transform translate-y-full z-50 pointer-events-auto flex flex-col">
         <div class="flex flex-col items-center p-4 panel-wood-header !rounded-t-3xl relative">
-          <h2 id="upgrade-title" class="text-2xl font-black text-gold drop-shadow-md tracking-wider">Upgrade</h2>
-          <div id="upgrade-stars" class="text-gold text-lg tracking-widest drop-shadow-sm mt-1">⭐</div>
+          <h2 id="upgrade-title" class="text-2xl font-black text-gold drop-shadow-md tracking-wider" style="font-family: 'Bungee', cursive;">Upgrade</h2>
+          <div id="upgrade-stars" class="text-gold text-lg tracking-widest drop-shadow-sm mt-1 star-glow">⭐</div>
           <button id="upgrade-close-btn" class="btn-press absolute right-4 top-4 w-8 h-8 btn-red rounded-full font-bold flex items-center justify-center text-white text-lg pb-1 shadow-md">x</button>
         </div>
         <div class="flex justify-around p-3 bg-black/40 shadow-inner">
@@ -147,29 +156,29 @@
         </div>
         <div class="p-4 flex-1 flex flex-col gap-4">
           <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/10 shadow-inner">
-            <div class="text-center w-5/12"><div class="text-xs text-white/70 font-bold">Current</div><div id="upgrade-current-stat" class="font-black text-white drop-shadow">0</div></div>
+            <div class="text-center w-5/12"><div class="text-xs text-white/60 font-bold">Current</div><div id="upgrade-current-stat" class="font-black text-white drop-shadow text-lg" style="font-family: 'Outfit', sans-serif;">0</div></div>
             <div class="text-gold font-black w-2/12 text-center text-lg">➔</div>
-            <div class="text-center w-5/12"><div class="text-xs text-green-400 font-bold">Next</div><div id="upgrade-next-stat" class="font-black text-green-400 drop-shadow">0</div></div>
+            <div class="text-center w-5/12"><div class="text-xs text-green-400 font-bold">Next</div><div id="upgrade-next-stat" class="font-black text-green-400 drop-shadow text-lg" style="font-family: 'Outfit', sans-serif;">0</div></div>
           </div>
           <button id="upgrade-action-btn" class="btn-press w-full py-4 rounded-xl btn-green font-black text-lg shadow-lg flex justify-between px-6 items-center">
             <span id="upgrade-level-text" class="drop-shadow-md">Lvl 1 ➔ 2</span>
-            <span id="upgrade-cost-text" class="text-gold drop-shadow-md">100 C</span>
+            <span id="upgrade-cost-text" class="text-gold drop-shadow-md" style="font-family: 'Outfit', sans-serif;">100 C</span>
           </button>
         </div>
       </div>
 
-      <!-- Manager Panel -->
+      <!-- ═══════════════ MANAGER PANEL ═══════════════ -->
       <div id="manager-panel" class="absolute inset-0 bg-black/70 z-[60] hidden flex-col justify-end pointer-events-auto modal-overlay">
         <div class="panel-wood w-full !rounded-t-3xl flex flex-col">
           <div class="p-4 flex justify-between items-center panel-wood-header !rounded-t-3xl">
-            <h2 class="text-2xl font-black text-gold drop-shadow-md tracking-wider">Hire Manager</h2>
+            <h2 class="text-2xl font-black text-gold drop-shadow-md tracking-wider" style="font-family: 'Bungee', cursive;">Hire Manager</h2>
             <button id="manager-close-btn" class="btn-press w-8 h-8 btn-red rounded-full font-bold flex items-center justify-center pb-1">x</button>
           </div>
           <div class="p-6 pb-12 flex flex-col gap-3">
             <div class="flex justify-between items-center bg-black/40 p-4 rounded-2xl border border-white/10 shadow-inner">
               <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-gradient-to-b from-[#8b5a33] to-[#5c3a21] border-2 border-[#b8860b] rounded-full flex items-center justify-center font-bold text-2xl shadow-md">👨‍💼</div>
-                <div><h3 class="font-black text-white text-lg drop-shadow">Junior Manager</h3><p class="text-xs text-white/70 font-bold">Automates work</p></div>
+                <div><h3 class="font-black text-white text-lg drop-shadow">Junior Manager</h3><p class="text-xs text-white/60 font-bold">Automates work</p></div>
               </div>
               <button class="manager-buy-btn btn-press btn-green px-6 py-3 rounded-xl font-black shadow-lg" data-cost="100">100 C</button>
             </div>
@@ -178,7 +187,7 @@
       </div>
 
     </div>
-    <div style="text-align:center; font-size:10px; margin-top:10px; margin-bottom:10px;"><a href="privacy.html" style="color:gray;">Privacy Policy</a> | <a href="terms.html" style="color:gray;">Terms of Service</a></div>
+    <div class="footer-links" style="text-align:center; font-size:10px; margin-top:10px; margin-bottom:10px;"><a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a></div>
   </div>
   <script type="module" src="/src/main.js"></script>
 </body>

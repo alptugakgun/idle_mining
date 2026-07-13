@@ -2,16 +2,20 @@ import Phaser from 'phaser';
 import PreloadScene from './scenes/PreloadScene.js';
 import MenuScene from './scenes/MenuScene.js';
 import GameScene from './scenes/GameScene.js';
-import { GameMath, AdsManager } from './gameLogic.js';
+import GameMath from './GameMath.js';
 
+// ── On-Screen Debug Logger ──
 window.logToScreen = function(msg) {
   const dbg = document.getElementById('debug-console');
   if(dbg) dbg.innerHTML += '<br/>> ' + msg;
   console.log(msg);
 };
 
+// ── Global State ──
 window.globalBoostEndTime = 0;
+window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
 
+// ── Phaser Config ──
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
@@ -30,19 +34,15 @@ const config = {
   scene: [PreloadScene, MenuScene, GameScene]
 };
 
-// Global offline earning logic
-let lastTime = Date.now();
-
-window.playerProfile = { name: 'Guest_Miner', avatar: '/assets/sprites/sprite_5.png' };
-
+// ── TikTok SDK Init ──
 function initTikTokSDK() {
-  window.logToScreen("initTikTokSDK çağrıldı. TTMinis objesi: " + typeof TTMinis);
+  window.logToScreen("initTikTokSDK called. TTMinis object: " + typeof TTMinis);
   if (typeof TTMinis !== 'undefined') {
     try {
         TTMinis.init({
             clientKey: 'sbaw5t3lvvcxfi4puy'
         });
-        window.logToScreen("TTMinis SDK Başarıyla Başlatıldı!");
+        window.logToScreen("TTMinis SDK Initialized Successfully!");
         
         if (TTMinis.login) {
             TTMinis.login({
@@ -56,12 +56,12 @@ function initTikTokSDK() {
                         window.playerProfile.avatar = info.userInfo.avatarUrl || window.playerProfile.avatar;
                         updateProfileUI();
                       },
-                      fail(err) { window.logToScreen("GetUserInfo hatası: " + JSON.stringify(err)); }
+                      fail(err) { window.logToScreen("GetUserInfo error: " + JSON.stringify(err)); }
                     });
                 }
               },
               fail(err) {
-                window.logToScreen("TTMinis.login başarısız: " + JSON.stringify(err));
+                window.logToScreen("TTMinis.login failed: " + JSON.stringify(err));
                 updateProfileUI();
               }
             });
@@ -69,10 +69,10 @@ function initTikTokSDK() {
             updateProfileUI();
         }
     } catch (err) {
-        window.logToScreen("TTMinis Init/Login Hatası: " + (err.message || JSON.stringify(err)));
+        window.logToScreen("TTMinis Init/Login Error: " + (err.message || JSON.stringify(err)));
     }
   } else {
-    window.logToScreen("KRİTİK HATA: TTMinis objesi yüklenemedi!");
+    window.logToScreen("CRITICAL ERROR: TTMinis object could not be loaded!");
     updateProfileUI();
   }
 }
@@ -86,6 +86,7 @@ function updateProfileUI() {
 
 initTikTokSDK();
 
+// ── UI Resize (ResizeObserver + fallback) ──
 function resizeUI() {
   const canvas = document.querySelector('canvas');
   const uiLayer = document.getElementById('ui-layer');
@@ -98,9 +99,26 @@ function resizeUI() {
 }
 
 window.addEventListener('resize', resizeUI);
-setInterval(resizeUI, 500); // reduced frequency fallback
 
-let savedState = localStorage.getItem('idleMiningSave');
+// Use ResizeObserver for responsive UI sync (replaces old setInterval hack)
+const gameContainer = document.getElementById('game-container');
+if (gameContainer && typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resizeUI).observe(gameContainer);
+} else {
+  // Fallback for older browsers
+  setInterval(resizeUI, 1000);
+}
+
+// ── Load Saved State (with migration from old key) ──
+let savedState = localStorage.getItem('idle_mining_save');
+// Migrate from old inconsistent key if new key doesn't exist
+if (!savedState) {
+  savedState = localStorage.getItem('idleMiningSave');
+  if (savedState) {
+    localStorage.setItem('idle_mining_save', savedState);
+    localStorage.removeItem('idleMiningSave');
+  }
+}
 if (savedState) {
   try {
     let state = JSON.parse(savedState);
@@ -108,53 +126,81 @@ if (savedState) {
   } catch (e) { }
 }
 
+// ── Create Phaser Game ──
 const game = new Phaser.Game(config);
 
-// Save loop
-setInterval(() => {
-  if (window.gameScene && window.gameScene.gameState) {
-    let state = { ...window.gameScene.gameState, lastSaved: Date.now() };
-    // Estimate idle cash rate for offline calc
-    let idleRate = parseInt(document.getElementById('idle-cash-display').innerText) || 0;
-    state.idleCashRate = idleRate;
-    localStorage.setItem('idleMiningSave', JSON.stringify(state));
+// ── Rewarded Ad Helper ──
+function showRewardedAd(onSuccess, onFail) {
+  if (typeof TTMinis !== 'undefined' && TTMinis.createRewardedVideoAd) {
+    try {
+      let videoAd = TTMinis.createRewardedVideoAd({ adUnitId: 'TEST_AD_UNIT_ID' });
+      videoAd.show().then(() => {
+        window.logToScreen("Ad opened successfully!");
+      }).catch(() => {
+        window.logToScreen("Ad API error, test reward granted!");
+        if (onSuccess) onSuccess();
+      });
+      videoAd.onClose((res) => {
+        if (res && res.isEnded) {
+          window.logToScreen("Ad completed! Reward granted.");
+          if (onSuccess) onSuccess();
+        } else {
+          window.logToScreen("Ad interrupted, reward cancelled.");
+          if (onFail) onFail();
+        }
+      });
+    } catch (e) {
+      window.logToScreen("Ad API Error: " + e.message);
+      // Mock fallback for development
+      console.log("Watching Ad... (Mock)");
+      setTimeout(() => {
+        console.log("Mock Ad Finished! Granting Reward.");
+        if (onSuccess) onSuccess();
+      }, 2000);
+    }
+  } else {
+    // Mock fallback for development
+    console.log("Watching Ad... (Mock)");
+    setTimeout(() => {
+      console.log("Mock Ad Finished! Granting Reward.");
+      if (onSuccess) onSuccess();
+    }, 2000);
   }
-}, 5000);
-
-// Removed duplicated UI logic. GameUI.js handles the UI updates now.
-const offlineModal = document.getElementById('offline-modal');
-
-function formatMoney(num) {
-  if (num < 1000) return Math.floor(num).toString();
-  if (num < 1000000) return (num / 1000).toFixed(1) + 'k';
-  if (num < 1000000000) return (num / 1000000).toFixed(2) + 'm';
-  return (num / 1000000000).toFixed(2) + 'b';
 }
 
+// Make it globally accessible
+window.showRewardedAd = showRewardedAd;
+
+// ── Helper: Calculate total production per second ──
 function calcTotalProd() {
   if (!window.gameScene || !window.gameScene.gameState) return 0;
   const state = window.gameScene.gameState;
   let total = 0;
   window.gameScene.shafts.forEach(s => {
-    total += GameMath.calculateProduction(state.mineProdBase * s.id, s.level);
+    total += GameMath.getProduction(state.mineProdBase * s.id, s.level);
   });
   return total / 3;
 }
+
+// ── Post-Init: Save/Load & Offline Earnings ──
+const offlineModal = document.getElementById('offline-modal');
 
 const initInterval = setInterval(() => {
   if (window.gameScene && window.gameScene.gameState) {
     clearInterval(initInterval);
 
+    // Boost Ad Event
     window.gameScene.events.on('watch_boost_ad', () => {
-      AdsManager.showRewardedAd(() => {
+      showRewardedAd(() => {
         window.globalBoostEndTime = Date.now() + (60 * 60 * 1000); // 1 Hour
         document.getElementById('boost-modal').classList.add('hidden');
         document.getElementById('boost-modal').classList.remove('flex');
       }, () => {
-        alert('Boost Ad failed or closed.');
+        window.logToScreen('Boost ad failed or closed.');
       });
     });
 
+    // ── Restore Save ──
     const rawSave = localStorage.getItem('idle_mining_save');
     if (rawSave) {
       try {
@@ -182,9 +228,10 @@ const initInterval = setInterval(() => {
 
         window.globalBoostEndTime = save.globalBoostEndTime || 0;
 
+        // ── Offline Earnings Modal ──
         const pendingOfflineCash = GameMath.calculateOfflineEarnings(save.lastLogout, Date.now(), calcTotalProd());
         if (pendingOfflineCash > 0) {
-          document.getElementById('offline-earned-text').innerText = formatMoney(pendingOfflineCash);
+          document.getElementById('offline-earned-text').innerText = GameMath.formatMoney(pendingOfflineCash);
           offlineModal.classList.remove('hidden'); offlineModal.classList.add('flex');
 
           document.getElementById('offline-collect-btn').onclick = (e) => {
@@ -197,7 +244,7 @@ const initInterval = setInterval(() => {
           if (adBtn) {
             adBtn.onclick = (e) => {
               e.stopPropagation(); e.preventDefault();
-              AdsManager.showRewardedAd(() => {
+              showRewardedAd(() => {
                 state.balance += (pendingOfflineCash * 2);
                 offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
               });
@@ -207,14 +254,7 @@ const initInterval = setInterval(() => {
       } catch (e) { }
     }
 
-    document.getElementById('offline-close-btn')?.addEventListener('click', (e) => {
-      e.stopPropagation(); e.preventDefault();
-      offlineModal.classList.add('hidden'); offlineModal.classList.remove('flex');
-    });
-
-    // Removed duplicate btnShare logic (already in GameUI.js)
-
-    // Unified Save Loop (replaces duplicate save loop and handles boost timer UI)
+    // ── Unified Save Loop (every 1s) + Boost Timer UI ──
     setInterval(() => {
       const state = window.gameScene.gameState;
       const saveObj = {
@@ -226,7 +266,7 @@ const initInterval = setInterval(() => {
         lastLogout: Date.now(),
         globalBoostEndTime: window.globalBoostEndTime
       };
-      localStorage.setItem('idleMiningSave', JSON.stringify(saveObj)); // use unified key
+      localStorage.setItem('idle_mining_save', JSON.stringify(saveObj));
 
       // Update Boost UI Timer
       const boostDisplay = document.getElementById('boost-timer-display');
